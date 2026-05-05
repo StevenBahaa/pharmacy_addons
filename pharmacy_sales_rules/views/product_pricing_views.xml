@@ -5,19 +5,63 @@
         <field name="model">product.template</field>
         <field name="inherit_id" ref="pharmacy_base.view_medicine_form"/>
         <field name="arch" type="xml">
-            <xpath expr="//page[@name='pharmacy_page']/group[1]" position="inside">
-                <group string="Sales Rules">
-                    <field name="max_qty_per_invoice"/>
-                    <field name="activate_stock_low"/>
-                    <field name="low_stock_limit" invisible="not activate_stock_low"/>
-                    <field name="max_qty_low_stock" invisible="not activate_stock_low"/>
-                    <field name="is_low_stock" readonly="1"/>
-                    <field name="log_count" readonly="1"/>
-                </group>
-                <group string="Commission">
+            <xpath expr="//group[@name='pharmacy_package_unit_config']" position="before">
+                <group string="Commission"
+                       groups="pharmacy_base.group_pharmacy_manager,pharmacy_base.group_pricing_manager">
                     <field name="commission_feature_enabled" invisible="1"/>
-                    <field name="commission_percentage"/>
+                    <field name="commission_percentage"
+                           string="Commission %"
+                           invisible="not commission_feature_enabled"/>
                 </group>
+
+                <group string="Stock Control">
+                    <label for="activate_stock_low"
+                           string="Activate Stock Low"
+                           invisible="activate_stock_low"/>
+                    <label for="activate_stock_low"
+                           string="Deactivate Stock Low"
+                           invisible="not activate_stock_low"/>
+                    <field name="activate_stock_low"/>
+
+                    <group string="Low Stock Mode" invisible="not activate_stock_low">
+                        <field name="low_stock_limit"/>
+                        <field name="max_qty_low_stock"/>
+                    </group>
+
+                    <group string="Normal Limit Mode" invisible="activate_stock_low">
+                        <field name="max_qty_per_invoice"/>
+                    </group>
+                </group>
+            </xpath>
+
+            <xpath expr="//sheet/notebook" position="inside">
+                <page name="low_stock_logs"
+                      string="Low Stock Logs"
+                      invisible="type in ('service', 'combo')">
+                    <field name="low_stock_log_ids" readonly="1">
+                        <list>
+                            <field name="date"/>
+                            <field name="user_id"/>
+                            <field name="quantity"/>
+                            <field name="stock_at_time"/>
+                            <field name="order_ref"/>
+                            <field name="source"/>
+                        </list>
+                    </field>
+                </page>
+            </xpath>
+
+            <xpath expr="//notebook" position="inside">
+                <page name="price_history" string="Price History">
+                    <field name="price_history_ids" readonly="1">
+                        <list>
+                            <field name="date"/>
+                            <field name="old_price"/>
+                            <field name="new_price"/>
+                            <field name="changed_by"/>
+                        </list>
+                    </field>
+                </page>
             </xpath>
         </field>
     </record>

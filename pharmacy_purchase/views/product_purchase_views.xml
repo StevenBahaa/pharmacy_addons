@@ -1,12 +1,14 @@
 <?xml version="1.0" encoding="UTF-8"?>
 <odoo>
     <record id="view_product_template_purchase_discount_form" model="ir.ui.view">
-        <field name="name">product.template.purchase.discount.pharmacy</field>
+        <field name="name">product.template.form.inherit.purchase.discount</field>
         <field name="model">product.template</field>
         <field name="inherit_id" ref="purchase.view_product_template_purchase_buttons_from"/>
         <field name="arch" type="xml">
-            <xpath expr="//button[@name='action_view_po']" position="after">
-                <field name="x_last_purchase_discount" readonly="1"/>
+            <xpath expr="//group[@name='purchase']" position="inside">
+                <group string="Discount Information">
+                    <field name="x_last_purchase_discount" widget="percentage"/>
+                </group>
             </xpath>
         </field>
     </record>

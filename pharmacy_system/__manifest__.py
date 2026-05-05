@@ -3,11 +3,7 @@
     'name': 'Pharmacy Management System',
     'version': '18.0.1.0.0',
     'summary': 'Compatibility bridge for split pharmacy modules',
-    'description': """
-        Pharmacy Management System.
-        Manages medicines, prescriptions, stock, expiry tracking,
-        sales, invoicing, and reporting.
-    """,
+    'description': 'Compatibility bridge for the split Pharmacy Management System modules.',
     'author': 'Steven Bahaa',
     'category': 'Healthcare',
     'license': 'LGPL-3',

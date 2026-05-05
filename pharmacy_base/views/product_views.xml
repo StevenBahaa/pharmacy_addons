@@ -1,81 +1,243 @@
 <?xml version="1.0" encoding="UTF-8"?>
 <odoo>
+
     <record id="view_medicine_form" model="ir.ui.view">
-        <field name="name">product.template.form.pharmacy.base</field>
+        <field name="name">medicine.form.inherit</field>
         <field name="model">product.template</field>
         <field name="inherit_id" ref="product.product_template_only_form_view"/>
+        <field name="priority">99</field>
         <field name="arch" type="xml">
-            <xpath expr="//field[@name='name']" position="after">
-                <field name="x_classification"/>
-                <field name="generic_name"/>
-                <field name="manufacturer_id"/>
+
+            <xpath expr="//div[hasclass('oe_title')]/h1" position="after">
+                <div class="mt-2">
+                    <label for="generic_name" string="Generic / Scientific Name"/>
+                    <div>
+                        <field name="generic_name" placeholder="e.g. Paracetamol"/>
+                    </div>
+                </div>
             </xpath>
 
-            <xpath expr="//field[@name='uom_id']" position="after">
-                <field name="sell_as"/>
-                <field name="units_per_package" invisible="sell_as != 'unit'"/>
-                <field name="package_uom_id" readonly="1" invisible="sell_as != 'unit'"/>
+            <xpath expr="//field[@name='type']" position="after">
+                <field name="x_classification"
+                       groups="pharmacy_base.group_pharmacy_manager"/>
+                <field name="x_classification"
+                       groups="!pharmacy_base.group_pharmacy_manager"
+                       readonly="1"/>
             </xpath>
 
-            <xpath expr="//field[@name='list_price']" position="after">
-                <field name="public_price"/>
-                <field name="currency_display_price" readonly="1"/>
-                <field name="gov_price_lock" groups="pharmacy_base.group_pharmacy_manager"/>
-                <field name="x_avg_cost_display" readonly="1"/>
+            <xpath expr="//label[@for='list_price']" position="replace">
+                <label for="public_price" string="Public Price"/>
             </xpath>
 
-            <xpath expr="//notebook" position="inside">
-                <page name="pharmacy_page" string="Pharmacy">
-                    <group>
-                        <group string="Scheduled Medicine">
-                            <field name="x_is_scheduled"/>
-                            <field name="x_schedule_level" invisible="not x_is_scheduled"/>
+            <xpath expr="//div[@name='list_price_uom']" position="replace">
+                <div name="list_price_uom">
+                    <field name="list_price" invisible="1"/>
+                    <field name="public_price"
+                           class="oe_inline"
+                           widget="monetary"
+                           options="{'currency_field': 'currency_id'}"
+                           required="1"
+                           readonly="1"
+                           groups="!pharmacy_base.group_pharmacy_manager"/>
+                    <field name="public_price"
+                           class="oe_inline"
+                           widget="monetary"
+                           options="{'currency_field': 'currency_id'}"
+                           required="1"
+                           groups="pharmacy_base.group_pharmacy_manager"/>
+                </div>
+                <field name="currency_display_price"
+                       string="Price (Other Currency)"
+                       readonly="1"/>
+                <field name="gov_price_lock"
+                       string="Government Price Lock"
+                       groups="pharmacy_base.group_pharmacy_manager"/>
+            </xpath>
+
+            <xpath expr="//label[@id='standard_price_label']" position="attributes">
+                <attribute name="for">x_avg_cost_display</attribute>
+                <attribute name="string">Avg. Purchase Cost</attribute>
+                <attribute name="groups">pharmacy_base.group_pharmacy_manager,pharmacy_base.group_pricing_manager</attribute>
+            </xpath>
+
+            <xpath expr="//div[@name='standard_price_uom']" position="replace">
+                <div name="standard_price_uom">
+                    <field name="standard_price" invisible="1"/>
+                    <field name="x_avg_cost_display"
+                           class="oe_inline"
+                           readonly="1"
+                           groups="pharmacy_base.group_pharmacy_manager,pharmacy_base.group_pricing_manager"/>
+                </div>
+            </xpath>
+
+            <xpath expr="//group[@name='sale']" position="after">
+                <group string="Pharmacy Configurations" name="pharmacy_configurations">
+                    <group string="Package / Unit Configuration"
+                           name="pharmacy_package_unit_config"
+                           invisible="type in ('service', 'combo')">
+                        <group>
+                            <field name="sell_as"
+                                   widget="radio"
+                                   options="{'horizontal': True}"/>
+                            <field name="units_per_package"
+                                   invisible="sell_as != 'unit'"
+                                   required="type not in ('service', 'combo') and sell_as == 'unit'"/>
                         </group>
                     </group>
-                    <group string="Related Products">
-                        <field name="similar_product_ids">
+                </group>
+            </xpath>
+
+            <xpath expr="//page[@name='general_information']" position="inside">
+                <group string="Pharmaceutical Info" invisible="type in ('service', 'combo') or x_classification != 'medicine'">
+                    <group string="Medical Info">
+                        <field name="x_is_scheduled"
+                               groups="pharmacy_base.group_pharmacist,pharmacy_base.group_pharmacy_manager"/>
+                        <field name="x_schedule_level"
+                               groups="pharmacy_base.group_pharmacist,pharmacy_base.group_pharmacy_manager"
+                               invisible="not x_is_scheduled"/>
+                    </group>
+
+                    <group string="Manufacturing Info">
+                        <field name="manufacturer_id"/>
+                    </group>
+                </group>
+            </xpath>
+
+            <xpath expr="//sheet/notebook" position="inside">
+                <page name="related_products"
+                      string="Related Products"
+                      invisible="type in ('service', 'combo')">
+
+                    <group>
+                        <div class="alert alert-info" role="alert">
+                            Configure similar alternatives and complementary products used later in POS and sales suggestions.
+                        </div>
+                    </group>
+
+                    <group string="Similar / Alternative Products">
+                        <field name="similar_product_ids"
+                               context="{'default_product_id': id, 'default_relation_type': 'similar'}"
+                               nolabel="1">
                             <list editable="bottom">
-                                <field name="related_product_id"/>
-                                <field name="relation_type"/>
+                                <field name="related_product_id"
+                                       domain="[('id', '!=', parent.id), ('type', 'not in', ('service', 'combo'))]"/>
                                 <field name="priority"/>
-                                <field name="active"/>
-                                <button name="action_make_reciprocal" type="object" string="Reciprocal"/>
-                            </list>
-                        </field>
-                        <field name="complementary_product_ids">
-                            <list editable="bottom">
-                                <field name="related_product_id"/>
-                                <field name="relation_type"/>
-                                <field name="priority"/>
-                                <field name="active"/>
-                                <button name="action_make_reciprocal" type="object" string="Reciprocal"/>
+                                <field name="note"/>
+                                <field name="relation_type" column_invisible="1"/>
+                                <button name="action_make_reciprocal"
+                                        type="object"
+                                        string="Make Reciprocal"
+                                        class="btn-secondary"/>
                             </list>
                         </field>
                     </group>
-                    <group string="Additional Barcodes">
-                        <button name="action_generate_random_barcode" type="object" string="Generate Barcode"/>
-                        <field name="barcode_line_ids">
+
+                    <group string="Complementary Products">
+                        <field name="complementary_product_ids"
+                               context="{'default_product_id': id, 'default_relation_type': 'complementary'}"
+                               nolabel="1">
                             <list editable="bottom">
-                                <field name="name"/>
-                                <field name="barcode_type"/>
+                                <field name="related_product_id"
+                                       domain="[('id', '!=', parent.id), ('type', 'not in', ('service', 'combo'))]"/>
+                                <field name="priority"/>
+                                <field name="note"/>
+                                <field name="relation_type" column_invisible="1"/>
+                                <button name="action_make_reciprocal"
+                                        type="object"
+                                        string="Make Reciprocal"
+                                        class="btn-secondary"/>
                             </list>
                         </field>
                     </group>
+
                 </page>
+            </xpath>
+
+            <xpath expr="//field[@name='barcode']" position="after">
+                <separator string="Barcode Actions"
+                           invisible="type in ('service', 'combo')"/>
+
+                <div class="o_row" invisible="type in ('service', 'combo')">
+                    <button name="action_generate_random_barcode"
+                            string="Generate Random Barcode"
+                            type="object"
+                            class="btn btn-secondary btn-sm"/>
+                </div>
+
+                <field name="barcode_line_ids"
+                       nolabel="1"
+                       colspan="2"
+                       invisible="type in ('service', 'combo')">
+                    <list editable="bottom" string="Multi Barcodes List">
+                        <field name="name" string="Barcode Number"/>
+                        <field name="barcode_type" string="Barcode Category"/>
+                    </list>
+                </field>
+            </xpath>
+
+            <xpath expr="//field[@name='barcode']" position="attributes">
+                <attribute name="invisible">1</attribute>
             </xpath>
         </field>
     </record>
 
     <record id="view_product_template_list_inherit_scheduled" model="ir.ui.view">
-        <field name="name">product.template.list.pharmacy.base</field>
+        <field name="name">product.template.list.inherit.scheduled</field>
         <field name="model">product.template</field>
         <field name="inherit_id" ref="product.product_template_tree_view"/>
         <field name="arch" type="xml">
-            <xpath expr="//field[@name='name']" position="after">
-                <field name="x_classification" optional="show"/>
-                <field name="generic_name" optional="hide"/>
-                <field name="x_is_scheduled" optional="hide"/>
+
+            <xpath expr="//list" position="attributes">
+                <attribute name="decoration-danger">x_is_scheduled</attribute>
             </xpath>
+
+            <xpath expr="//field[@name='list_price']" position="replace">
+                <field name="public_price" string="Public Price"/>
+                <field name="x_is_scheduled" optional="show"/>
+                <field name="x_schedule_level" optional="show"/>
+            </xpath>
+
         </field>
     </record>
+
+    <record id="product_template_kanban_public_price" model="ir.ui.view">
+        <field name="name">product.template.kanban.public.price</field>
+        <field name="model">product.template</field>
+        <field name="inherit_id" ref="product.product_template_kanban_view"/>
+        <field name="arch" type="xml">
+
+            <xpath expr="//field[@name='list_price']" position="replace">
+                <field name="public_price" readonly="1"/>
+            </xpath>
+
+        </field>
+    </record>
+
+    <record id="product_template_search_view_inherit_classification" model="ir.ui.view">
+        <field name="name">product.template.search.inherit.classification</field>
+        <field name="model">product.template</field>
+        <field name="inherit_id" ref="product.product_template_search_view"/>
+        <field name="arch" type="xml">
+
+            <xpath expr="//search" position="inside">
+                <field name="generic_name" string="Generic Name"/>
+
+                <separator/>
+                <filter name="filter_medicine"
+                        string="Medicines"
+                        domain="[('x_classification', '=', 'medicine')]"/>
+                <filter name="filter_non_medicine"
+                        string="Non-Medicines"
+                        domain="[('x_classification', '=', 'non_medicine')]"/>
+            </xpath>
+
+            <xpath expr="//search/group" position="inside">
+                <filter name="group_by_classification"
+                        string="Classification"
+                        context="{'group_by': 'x_classification'}"/>
+            </xpath>
+
+        </field>
+    </record>
+
 </odoo>
