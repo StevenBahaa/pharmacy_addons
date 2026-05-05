@@ -6,5 +6,5 @@ from . import low_stock_log
 from . import sale_commission_entry
 from . import sale_order
 from . import sale_order_line
-from . import stock_move
+from . import stock_move_commission
 from . import ir_ui_menu
