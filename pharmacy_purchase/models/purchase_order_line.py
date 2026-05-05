@@ -72,7 +72,25 @@ class PurchaseOrderLine(models.Model):
             )
 
         return sold_qty
-        
+
+    def _get_consignment_already_paid_qty(self):
+        self.ensure_one()
+
+        payments = self.env["pharmacy.consignment.payment"].search([
+            ('purchase_order_line_id', '=', self.id),
+            ("bill_id.state", "!=", "cancel"),
+            ('state', '=', 'paid'),
+        ])
+
+        total_paid = 0.0
+        for payment in payments:
+            total_paid += payment.product_uom._compute_quantity(
+                payment.quantity_paid,
+                self.product_uom,
+            )
+
+        return total_paid
+
     # -------------------------------------------------------------------------
     # ONCHANGE: FORCE PACKAGE UOM
     # -------------------------------------------------------------------------

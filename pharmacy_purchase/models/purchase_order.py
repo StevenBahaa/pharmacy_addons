@@ -24,8 +24,10 @@ class PurchaseOrder(models.Model):
                 continue
                 
             sold_qty = line._get_consignment_sold_qty_sales_only()
-            already_paid_qty = 0.0  # TODO: implement actual payment tracking
+            already_paid_qty = line._get_consignment_already_paid_qty()
             payable_now_qty = max(sold_qty - already_paid_qty, 0.0)
+            payable_remaining_qty = max(line.qty_received - sold_qty, 0.0)
+            
             
             wizard_vals['line_ids'].append((0, 0, { 
                 "purchase_order_line_id": line.id,  
@@ -34,7 +36,7 @@ class PurchaseOrder(models.Model):
                 "sold_qty": sold_qty,  
                 "already_paid_qty": already_paid_qty,  
                 "payable_now_qty": payable_now_qty,  
-                "payable_remaining_qty": line.qty_received - already_paid_qty
+                "payable_remaining_qty": payable_remaining_qty,
             }))
 
         wizard = self.env['pharmacy.consignment.track.wizard'].create(wizard_vals)   
