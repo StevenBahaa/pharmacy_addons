@@ -11,6 +11,14 @@
                     widget="boolean_toggle"
                     readonly="state not in ['draft', 'sent']" />
             </xpath>
+
+            <xpath expr="//header" position="inside">
+                <button name="action_open_consignment_tracking"
+                    type="object"
+                    string="Consignment Tracking"
+                    class="btn-primary"
+                    invisible="not (is_consignment and state in ['draft', 'sent'])" />
+            </xpath>
         </field>
     </record>
 

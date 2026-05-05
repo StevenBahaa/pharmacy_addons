@@ -10,3 +10,7 @@ class PurchaseOrder(models.Model):
         tracking=True,
         index=True
         )
+
+    def action_open_consignment_tracking(self):
+       self.ensure_one()
+       return True  # placeholder for now
