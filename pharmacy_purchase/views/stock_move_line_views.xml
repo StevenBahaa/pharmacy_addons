@@ -1,0 +1,39 @@
+<?xml version="1.0" encoding="utf-8"?>
+<odoo>
+    <!-- Force hide Owner from the Operation Tree (the popup in your screenshot) -->
+    <record id="view_stock_move_line_operation_tree_inherit_pharmacy" model="ir.ui.view">
+        <field name="name">stock.move.line.operations.list.inherit.pharmacy</field>
+        <field name="model">stock.move.line</field>
+        <field name="inherit_id" ref="stock.view_stock_move_line_operation_tree" />
+        <field name="arch" type="xml">
+            <xpath expr="//field[@name='owner_id']" position="attributes">
+                <!-- We use True to override the dynamic 'parent.show_quant' logic from base stock -->
+                <attribute name="column_invisible">True</attribute>
+            </xpath>
+        </field>
+    </record>
+
+    <!-- Force hide Owner from the Detailed Operations Tree -->
+    <record id="view_stock_move_line_detailed_operation_tree_inherit_pharmacy" model="ir.ui.view">
+        <field name="name">stock.move.line.operations.list.detailed.inherit.pharmacy</field>
+        <field name="model">stock.move.line</field>
+        <field name="inherit_id" ref="stock.view_stock_move_line_detailed_operation_tree" />
+        <field name="arch" type="xml">
+            <xpath expr="//field[@name='owner_id']" position="attributes">
+                <attribute name="column_invisible">True</attribute>
+            </xpath>
+        </field>
+    </record>
+
+    <!-- Force hide from the main form view -->
+    <record id="view_move_line_form_inherit_pharmacy" model="ir.ui.view">
+        <field name="name">stock.move.line.form.inherit.pharmacy</field>
+        <field name="model">stock.move.line</field>
+        <field name="inherit_id" ref="stock.view_move_line_form" />
+        <field name="arch" type="xml">
+            <xpath expr="//field[@name='owner_id']" position="attributes">
+                <attribute name="invisible">1</attribute>
+            </xpath>
+        </field>
+    </record>
+</odoo>

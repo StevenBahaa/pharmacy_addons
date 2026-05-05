@@ -2,6 +2,13 @@ from odoo import fields, models, api
 
 class PurchaseOrder(models.Model):
     _inherit = "purchase.order"
+
+    def _prepare_picking(self):
+        res = super()._prepare_picking()
+        if self.is_consignment:
+            res['owner_id'] = self.partner_id.id
+        return res
+
     
 
     is_consignment = fields.Boolean(

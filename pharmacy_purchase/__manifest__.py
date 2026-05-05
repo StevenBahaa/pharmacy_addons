@@ -12,6 +12,7 @@
         'views/purchase_order_line_uom_views.xml',
         'views/product_purchase_views.xml',
         'views/purchase_order_consignment_views.xml',
+        'views/stock_move_line_views.xml',
         'wizard/consignment_track_wizard_views.xml',
     ],
     'installable': True,

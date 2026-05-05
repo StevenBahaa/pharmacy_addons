@@ -136,9 +136,16 @@ class StockMove(models.Model):
             'expiration_date': False,
             'x_expiry_month_year': False,
             'quantity': remaining_qty,
+            'owner_id': self.picking_id.owner_id.id if self.picking_id else False,
         }
 
     def _pharmacy_remove_remaining_lot_lines(self, lines):
         self.ensure_one()
         if lines:
             self.move_line_ids = self.move_line_ids - lines
+
+    def _prepare_move_line_vals(self, quantity=None, reserved_quant=None):
+        res = super()._prepare_move_line_vals(quantity=quantity, reserved_quant=reserved_quant)
+        if self.picking_id and self.picking_id.owner_id:
+            res['owner_id'] = self.picking_id.owner_id.id
+        return res
