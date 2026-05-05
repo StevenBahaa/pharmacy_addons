@@ -8,8 +8,19 @@ class PurchaseOrder(models.Model):
         string="Is Consignment", 
         default=False,
         tracking=True,
-        index=True
-        )
+        index=True,
+        help="If checked, this PO follows the consignment workflow."
+    )
+
+    def write(self, vals):
+        if 'is_consignment' in vals:
+            for order in self:
+                if vals['is_consignment']:
+                    order.message_post(body=f"PO marked as Consignment by {self.env.user.name} on {fields.Date.today()}")
+                else:
+                    order.message_post(body=f"Consignment status removed by {self.env.user.name}")
+        return super().write(vals)
+
 
     def action_open_consignment_tracking(self):
         self.ensure_one()

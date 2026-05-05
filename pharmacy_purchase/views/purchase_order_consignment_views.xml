@@ -6,8 +6,15 @@
         <field name="inherit_id" ref="purchase.purchase_order_form" />
         <field name="priority">10010</field>
         <field name="arch" type="xml">
+            <xpath expr="//sheet/div[hasclass('oe_button_box')]" position="before">
+                <widget name="web_ribbon" title="CONSIGNMENT" bg_color="text-bg-info" invisible="not is_consignment" />
+            </xpath>
+
+
+
             <xpath expr="//field[@name='partner_id']" position="after">
                 <field name="is_consignment"
+                    string="Consignment"
                     widget="boolean_toggle"
                     readonly="state not in ['draft', 'sent']" />
             </xpath>
@@ -15,10 +22,11 @@
             <xpath expr="//header" position="inside">
                 <button name="action_open_consignment_tracking"
                     type="object"
-                    string="Consignment Tracking"
+                    string="Track Stock"
                     class="btn-primary"
                     invisible="not is_consignment or state in ['draft', 'sent', 'cancel']" />
             </xpath>
+
         </field>
     </record>
 
@@ -29,7 +37,24 @@
         <field name="inherit_id" ref="purchase.purchase_order_view_tree" />
         <field name="arch" type="xml">
             <xpath expr="//field[@name='partner_id']" position="after">
-                <field name="is_consignment" optional="show" widget="boolean_toggle" />
+                <field name="is_consignment" 
+                    string="Consignment"
+                    optional="show" 
+                    widget="badge"
+                    decoration-info="is_consignment"
+                    invisible="not is_consignment" />
+            </xpath>
+        </field>
+
+    </record>
+
+    <record id="view_purchase_order_filter_inherit_consignment" model="ir.ui.view">
+        <field name="name">purchase.order.list.select.inherit.consignment</field>
+        <field name="model">purchase.order</field>
+        <field name="inherit_id" ref="purchase.view_purchase_order_filter" />
+        <field name="arch" type="xml">
+            <xpath expr="//filter[@name='my_purchases']" position="after">
+                <filter string="Consignment" name="consignment" domain="[('is_consignment', '=', True)]" />
             </xpath>
         </field>
     </record>

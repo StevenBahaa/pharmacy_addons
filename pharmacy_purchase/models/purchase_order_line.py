@@ -56,22 +56,68 @@ class PurchaseOrderLine(models.Model):
         if not start_date:
             return 0.0
 
+        # Get the destination locations from the PO pickings
+        pickings = self.order_id.picking_ids.filtered(
+            lambda p: p.state == "done" and p.picking_type_id.code == "incoming"
+        )
+        location_ids = pickings.mapped("location_dest_id").ids
+
         domain = [
             ('product_id', '=', self.product_id.id),
             ('order_id.state', 'in', ['sale', 'done']),
             ('order_id.date_order', '>=', start_date),
+            '|',
+            ('product_id.seller_ids.partner_id', '=', self.order_id.partner_id.id),
+            ('product_id.manufacturer_id', '=', self.order_id.partner_id.id),
         ]
 
+        
+        # If we have specific locations, we should ideally filter sales by warehouse/location.
+        # In standard Odoo, sale.order.line doesn't have a direct location_id, but the order has a warehouse_id.
+        # However, stock.move has location_id. Let's use stock.move instead for more accuracy if needed,
+        # or just warehouse_id from the sale order.
+        # The prompt says "filtered by location".
+        
+        # 1. Search Sale Order Lines
         sale_lines = self.env['sale.order.line'].search(domain)
-        sold_qty = 0.0
+        
+        # 2. Search POS Order Lines (using same start date and product)
+        pos_domain = [
+            ('product_id', '=', self.product_id.id),
+            ('order_id.state', 'in', ['paid', 'done', 'invoiced']),
+            ('order_id.date_order', '>=', start_date),
+            '|',
+            ('product_id.seller_ids.partner_id', '=', self.order_id.partner_id.id),
+            ('product_id.manufacturer_id', '=', self.order_id.partner_id.id),
+        ]
+        pos_lines = self.env['pos.order.line'].search(pos_domain)
 
+        # Filter lines by warehouse if the PO pickings are in a specific warehouse
+        if location_ids:
+            warehouses = self.env['stock.warehouse'].search([('lot_stock_id', 'in', location_ids)])
+            if warehouses:
+                sale_lines = sale_lines.filtered(lambda l: l.order_id.warehouse_id in warehouses)
+                # POS orders are linked to a warehouse via the POS session's config
+                pos_lines = pos_lines.filtered(lambda l: l.order_id.config_id.warehouse_id in warehouses)
+
+        sold_qty = 0.0
+        # Sum from Sale Orders
         for sale_line in sale_lines:
             sold_qty += sale_line.product_uom._compute_quantity(
                 sale_line.product_uom_qty,
                 self.product_uom,
             )
+        
+        # Sum from POS Orders
+        for pos_line in pos_lines:
+            sold_qty += pos_line.product_uom._compute_quantity(
+                pos_line.qty,
+                self.product_uom,
+            )
 
         return sold_qty
+
+
 
     def _get_consignment_already_paid_qty(self):
         self.ensure_one()
