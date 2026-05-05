@@ -29,6 +29,13 @@ class PurchaseOrder(models.Model):
             payable_remaining_qty = max(line.qty_received - sold_qty, 0.0)
             
             
+            status = 'pending'
+            if sold_qty > 0:
+                if already_paid_qty >= sold_qty:
+                    status = 'paid'
+                elif already_paid_qty > 0:
+                    status = 'partial'
+
             wizard_vals['line_ids'].append((0, 0, { 
                 "purchase_order_line_id": line.id,  
                 "product_id": line.product_id.id,  
@@ -37,6 +44,7 @@ class PurchaseOrder(models.Model):
                 "already_paid_qty": already_paid_qty,  
                 "payable_now_qty": payable_now_qty,  
                 "payable_remaining_qty": payable_remaining_qty,
+                "status": status,
             }))
 
         wizard = self.env['pharmacy.consignment.track.wizard'].create(wizard_vals)   

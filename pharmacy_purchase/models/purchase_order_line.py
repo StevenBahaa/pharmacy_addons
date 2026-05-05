@@ -78,18 +78,10 @@ class PurchaseOrderLine(models.Model):
 
         payments = self.env["pharmacy.consignment.payment"].search([
             ('purchase_order_line_id', '=', self.id),
-            ("bill_id.state", "!=", "cancel"),
-            ('state', '=', 'paid'),
+            ("vendor_bill_id.state", "!=", "cancel"),
         ])
 
-        total_paid = 0.0
-        for payment in payments:
-            total_paid += payment.product_uom._compute_quantity(
-                payment.quantity_paid,
-                self.product_uom,
-            )
-
-        return total_paid
+        return sum(payments.mapped('quantity_paid'))
 
     # -------------------------------------------------------------------------
     # ONCHANGE: FORCE PACKAGE UOM
