@@ -1,0 +1,13 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<odoo>
+    <record id="uom_category_package" model="uom.category">
+        <field name="name">Package</field>
+    </record>
+
+    <record id="uom_uom_package" model="uom.uom">
+        <field name="name">Package</field>
+        <field name="category_id" ref="pharmacy_base.uom_category_package"/>
+        <field name="uom_type">reference</field>
+        <field name="rounding">0.01</field>
+    </record>
+</odoo>

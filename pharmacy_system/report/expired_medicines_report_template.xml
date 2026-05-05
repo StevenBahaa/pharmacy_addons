@@ -1,0 +1,107 @@
+<?xml version="1.0" encoding="utf-8"?>
+<odoo>
+    <template id="expired_medicines">
+        <t t-call="web.html_container">
+            <t t-call="web.external_layout">
+                <style>
+                    .em-report { font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Helvetica, Arial, sans-serif; color: #334155; }
+                    .em-header { border-bottom: 2px solid #2563eb; padding-bottom: 15px; margin-bottom: 24px; }
+                    .em-header h1 { margin: 0 0 5px 0; font-size: 24px; font-weight: 600; color: #1e293b; }
+                    .em-header .subtitle { font-size: 13px; color: #64748b; text-transform: uppercase; letter-spacing: 1px; margin-bottom: 8px; }
+                    .em-header .period-badge { display: inline-block; background-color: #fee2e2; color: #b91c1c; padding: 4px 10px; border-radius: 4px; font-size: 12px; font-weight: 500; }
+                    .em-branch-title { font-size: 14px; font-weight: 600; color: #0f172a; margin: 24px 0 12px 0; padding-left: 8px; border-left: 3px solid #2563eb; }
+                    .em-table { width: 100%; border-collapse: collapse; margin-bottom: 15px; font-size: 11px; }
+                    .em-table thead tr { border-bottom: 2px solid #cbd5e1; }
+                    .em-table thead th { padding: 8px 10px; text-align: left; font-weight: 600; color: #475569; text-transform: uppercase; font-size: 10px; letter-spacing: 0.5px; }
+                    .em-table thead th.num { text-align: right; }
+                    .em-table tbody tr { border-bottom: 1px solid #f1f5f9; }
+                    .em-table tbody tr:nth-child(even) { background-color: #f8fafc; }
+                    .em-table tbody td { padding: 8px 10px; color: #334155; }
+                    .em-table tbody td.num { text-align: right; font-variant-numeric: tabular-nums; }
+                    .em-table tbody td.medicine { font-weight: 500; color: #0f172a; }
+                    .em-table tbody td.barcode { font-family: ui-monospace, SFMono-Regular, Menlo, Monaco, Consolas, monospace; font-size: 10px; color: #64748b; }
+                    .em-totals-row { background-color: #f1f5f9; border-top: 1px solid #cbd5e1; border-bottom: 2px solid #cbd5e1; }
+                    .em-totals-row td { padding: 10px !important; color: #1e293b !important; font-weight: 600; }
+                    .em-grand-row { border-top: 2px solid #2563eb; background-color: #eff6ff; }
+                    .em-grand-row td { padding: 12px 10px; color: #1e3a8a !important; font-weight: 700; font-size: 12px; }
+                    .em-grand-row td.accent { color: #b91c1c !important; font-size: 14px; text-align: right; }
+                    .em-empty { text-align: center; padding: 40px; color: #64748b; background-color: #f8fafc; border: 1px dashed #cbd5e1; border-radius: 6px; margin: 20px 0; }
+                </style>
+
+                <div class="em-report">
+
+                    <div class="em-header">
+                        <div class="subtitle">Pharmacy Management System</div>
+                        <h1>Expired Medicines Report</h1>
+                        <div class="period-badge">Period: <t t-esc="period"/></div>
+                    </div>
+
+                    <t t-if="not grouped_lines">
+                        <div class="em-empty">
+                            No expired medicines found for the selected period and branches.
+                        </div>
+                    </t>
+
+                    <t t-foreach="grouped_lines" t-as="branch">
+
+                        <div class="em-branch-title">
+                            &#9673; Branch: <span dir="auto"><t t-esc="branch['location_name']"/></span>
+                        </div>
+
+                        <table class="em-table">
+                            <thead>
+                                <tr>
+                                    <th>Barcode</th>
+                                    <th>Medicine Name</th>
+                                    <th>Lot Number</th>
+                                    <th>Expiry</th>
+                                    <th class="num">Package Qty</th>
+                                    <th class="num">Remaining Unit Qty</th>
+                                    <th class="num">Package Price</th>
+                                    <th class="num">Total Value</th>
+                                </tr>
+                            </thead>
+                            <tbody>
+                                <t t-foreach="branch['lines']" t-as="line">
+                                    <tr>
+                                        <td class="barcode"><t t-esc="line['barcode']"/></td>
+                                        <td class="medicine" dir="auto"><t t-esc="line['name']"/></td>
+                                        <td><t t-esc="line['lot']"/></td>
+                                        <td><t t-esc="line['expiry_date']"/></td>
+                                        <td class="num"><t t-esc="'%.2f' % line['box_qty']"/></td>
+                                        <td class="num"><t t-esc="'%.0f' % line['unit_qty']"/></td>
+                                        <td class="num"><t t-esc="'%.2f' % line['box_price']"/></td>
+                                        <td class="num"><t t-esc="'%.2f' % line['total_value']"/></td>
+                                    </tr>
+                                </t>
+                                <tr class="em-totals-row">
+                                    <td colspan="4">Branch Total</td>
+                                    <td class="num"><t t-esc="'%.2f' % sum(l['box_qty'] for l in branch['lines'])"/></td>
+                                    <td class="num"><t t-esc="'%.0f' % sum(l['unit_qty'] for l in branch['lines'])"/></td>
+                                    <td></td>
+                                    <td class="num"><t t-esc="'%.2f' % sum(l['total_value'] for l in branch['lines'])"/></td>
+                                </tr>
+                            </tbody>
+                        </table>
+
+                    </t>
+
+                    <t t-if="grouped_lines">
+                        <table class="em-table" style="margin-top: 20px;">
+                            <tbody>
+                                <tr class="em-grand-row">
+                                    <td colspan="4" style="text-transform: uppercase; letter-spacing: 1px;">Grand Total</td>
+                                    <td class="num"><t t-esc="'%.2f' % total_boxes"/></td>
+                                    <td class="num"><t t-esc="'%.0f' % total_units"/></td>
+                                    <td></td>
+                                    <td class="accent"><t t-esc="'%.2f' % grand_total"/></td>
+                                </tr>
+                            </tbody>
+                        </table>
+                    </t>
+
+                </div>
+            </t>
+        </t>
+    </template>
+</odoo>

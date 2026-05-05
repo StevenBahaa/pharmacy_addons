@@ -1,0 +1,11 @@
+id,name,model_id:id,group_id:id,perm_read,perm_write,perm_create,perm_unlink
+access_sale_commission_entry_manager,sale.commission.entry.manager,model_sale_commission_entry,pharmacy_base.group_pharmacy_manager,1,0,0,0
+access_sale_commission_entry_pricing,sale.commission.entry.pricing,model_sale_commission_entry,pharmacy_base.group_pricing_manager,1,0,0,0
+access_product_price_history_user,product.price.history.user,model_product_price_history,base.group_user,1,0,0,0
+access_product_price_history_manager,product.price.history.manager,model_product_price_history,pharmacy_base.group_pharmacy_manager,1,1,1,1
+access_bulk_price_update_manager,bulk.price.update.manager,model_bulk_price_update,pharmacy_base.group_pharmacy_manager,1,1,1,1
+access_low_stock_log,low.stock.log,model_low_stock_log,pharmacy_base.group_pharmacy_manager,1,1,1,1
+access_low_stock_warning_wizard,low.stock.warning.wizard,model_low_stock_warning_wizard,base.group_user,1,1,1,1
+access_low_stock_warning_line,low.stock.warning.line,model_low_stock_warning_line,base.group_user,1,1,1,1
+access_sale_order_suggested_products_wizard_user,sale.order.suggested.products.wizard.user,model_sale_order_suggested_products_wizard,base.group_user,1,1,1,1
+access_sale_order_suggested_products_wizard_line_user,sale.order.suggested.products.wizard.line.user,model_sale_order_suggested_products_wizard_line,base.group_user,1,1,1,1

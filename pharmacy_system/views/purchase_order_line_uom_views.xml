@@ -1,0 +1,25 @@
+<odoo>
+    <record id="view_purchase_order_form_package_uom_readonly" model="ir.ui.view">
+        <field name="name">purchase.order.form.package.uom.readonly</field>
+        <field name="model">purchase.order</field>
+        <field name="inherit_id" ref="purchase.purchase_order_form"/>
+        <field name="priority">10000</field>
+        <field name="arch" type="xml">
+
+            <!-- LIST -->
+            <xpath expr="//field[@name='order_line']//list//field[@name='product_uom'][@groups='uom.group_uom']" position="attributes">
+                <attribute name="readonly">1</attribute>
+                <attribute name="force_save">1</attribute>
+                <attribute name="options">{'no_open': True, 'no_create': True}</attribute>
+            </xpath>
+
+            <!-- FORM POPUP -->
+            <xpath expr="//field[@name='order_line']//form//field[@name='product_uom'][@groups='uom.group_uom']" position="attributes">
+                <attribute name="readonly">1</attribute>
+                <attribute name="force_save">1</attribute>
+                <attribute name="options">{'no_open': True, 'no_create': True}</attribute>
+            </xpath>
+
+        </field>
+    </record>
+</odoo>

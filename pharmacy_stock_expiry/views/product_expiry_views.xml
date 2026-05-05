@@ -1,0 +1,19 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<odoo>
+    <record id="product_template_expired_card" model="ir.ui.view">
+        <field name="name">product.template.expired.card.pharmacy</field>
+        <field name="model">product.template</field>
+        <field name="inherit_id" ref="pharmacy_base.view_medicine_form"/>
+        <field name="arch" type="xml">
+            <xpath expr="//page[@name='pharmacy_page']/group[1]" position="inside">
+                <group string="Expiry">
+                    <field name="qty_expired" readonly="1"/>
+                    <button name="action_open_expired_stock"
+                            type="object"
+                            string="Expired Stock"
+                            invisible="qty_expired == 0"/>
+                </group>
+            </xpath>
+        </field>
+    </record>
+</odoo>

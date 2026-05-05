@@ -1,0 +1,394 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<odoo>
+
+    <!-- ================================================================ -->
+    <!-- Product Template Form Inherit                                    -->
+    <!-- ================================================================ -->
+    <record id="view_medicine_form" model="ir.ui.view">
+        <field name="name">medicine.form.inherit</field>
+        <field name="model">product.template</field>
+        <field name="inherit_id" ref="product.product_template_only_form_view"/>
+        <field name="priority">99</field>
+        <field name="arch" type="xml">
+
+            <!-- ======================================================== -->
+            <!-- 1. Title Area / Basic Medicine Identification             -->
+            <!-- ======================================================== -->
+            <xpath expr="//div[hasclass('oe_title')]/h1" position="after">
+                <div class="mt-2">
+                    <label for="generic_name" string="Generic / Scientific Name"/>
+                    <div>
+                        <field name="generic_name" placeholder="e.g. Paracetamol"/>
+                    </div>
+                </div>
+            </xpath>
+
+            <!-- ======================================================== -->
+            <!-- 2. Product Classification                                -->
+            <!-- ======================================================== -->
+            <xpath expr="//field[@name='type']" position="after">
+                <field name="x_classification"
+                       groups="pharmacy_system.group_pharmacy_manager"/>
+                <field name="x_classification"
+                       groups="!pharmacy_system.group_pharmacy_manager"
+                       readonly="1"/>
+            </xpath>
+
+
+             <!-- <xpath expr="//field[@name='x_classification']" position="after">
+                <field name="x_last_purchase_discount" 
+                       style="font-weight: bold; color: #1e3a8a;"/>
+            </xpath> -->
+
+            <!-- ======================================================== -->
+            <!-- 3. Public Price / Government Lock                         -->
+            <!-- ======================================================== -->
+            <xpath expr="//label[@for='list_price']" position="replace">
+                <label for="public_price" string="Public Price"/>
+            </xpath>
+
+            <xpath expr="//div[@name='list_price_uom']" position="replace">
+                <div name="list_price_uom">
+                    <field name="list_price" invisible="1"/>
+                    <field name="public_price"
+                           class="oe_inline"
+                           widget="monetary"
+                           options="{'currency_field': 'currency_id'}"
+                           required="1"
+                           readonly="1"
+                           groups="!pharmacy_system.group_pharmacy_manager"/>
+                    <field name="public_price"
+                           class="oe_inline"
+                           widget="monetary"
+                           options="{'currency_field': 'currency_id'}"
+                           required="1"
+                           groups="pharmacy_system.group_pharmacy_manager"/>
+                </div>
+                <field name="currency_display_price"
+                       string="Price (Other Currency)"
+                       readonly="1"/>
+                <field name="gov_price_lock"
+                       string="Government Price Lock"
+                       groups="pharmacy_system.group_pharmacy_manager"/>
+            </xpath>
+
+            <!-- ======================================================== -->
+            <!-- 4. Average Purchase Cost Display                          -->
+            <!-- ======================================================== -->
+            <xpath expr="//label[@id='standard_price_label']" position="attributes">
+                <attribute name="for">x_avg_cost_display</attribute>
+                <attribute name="string">Avg. Purchase Cost</attribute>
+                <attribute name="groups">pharmacy_system.group_pharmacy_manager,pharmacy_system.group_pricing_manager</attribute>
+            </xpath>
+
+            <xpath expr="//div[@name='standard_price_uom']" position="replace">
+                <div name="standard_price_uom">
+                    <field name="standard_price" invisible="1"/>
+                    <field name="x_avg_cost_display"
+                           class="oe_inline"
+                           readonly="1"
+                           groups="pharmacy_system.group_pharmacy_manager,pharmacy_system.group_pricing_manager"/>
+                </div>
+            </xpath>
+
+            <!-- ======================================================== -->
+            <!-- 5. Sales Page: Pharmacy Configurations                    -->
+            <!-- ======================================================== -->
+            <xpath expr="//group[@name='sale']" position="after">
+                <group string="Pharmacy Configurations" name="pharmacy_configurations">
+                    <group string="Commission"
+                           groups="pharmacy_system.group_pharmacy_manager,pharmacy_system.group_pricing_manager">
+                        <field name="commission_feature_enabled" invisible="1"/>
+                        <field name="commission_percentage"
+                               string="Commission %"
+                               invisible="not commission_feature_enabled"/>
+                    </group>
+
+                    <group string="Stock Control">
+                        <label for="activate_stock_low"
+                               string="Activate Stock Low"
+                               invisible="activate_stock_low"/>
+                        <label for="activate_stock_low"
+                               string="Deactivate Stock Low"
+                               invisible="not activate_stock_low"/>
+                        <field name="activate_stock_low"/>
+
+                        <group string="Low Stock Mode" invisible="not activate_stock_low">
+                            <field name="low_stock_limit"/>
+                            <field name="max_qty_low_stock"/>
+                        </group>
+
+                        <group string="Normal Limit Mode" invisible="activate_stock_low">
+                            <field name="max_qty_per_invoice"/>
+                        </group>
+                    </group>
+
+                    <group string="Package / Unit Configuration" invisible="type in ('service', 'combo')">
+                        <group>
+                            <field name="sell_as"
+                                   widget="radio"
+                                   options="{'horizontal': True}"/>
+                            <field name="units_per_package"
+                                   invisible="sell_as != 'unit'"
+                                   required="type not in ('service', 'combo') and sell_as == 'unit'"/>
+                        </group>
+                    </group>
+                </group>
+            </xpath>
+
+            <!-- ======================================================== -->
+            <!-- 6. General Information: Pharmaceutical Info               -->
+            <!-- ======================================================== -->
+            <xpath expr="//page[@name='general_information']" position="inside">
+                <group string="Pharmaceutical Info" invisible="type in ('service', 'combo') or x_classification != 'medicine'">
+                    <group string="Medical Info">
+                        <field name="x_is_scheduled"
+                               groups="pharmacy_system.group_pharmacist,pharmacy_system.group_pharmacy_manager"/>
+                        <field name="x_schedule_level"
+                               groups="pharmacy_system.group_pharmacist,pharmacy_system.group_pharmacy_manager"
+                               invisible="not x_is_scheduled"/>
+                    </group>
+
+                    <group string="Manufacturing Info">
+                        <field name="manufacturer_id"/>
+                    </group>
+                </group>
+            </xpath>
+
+            <!-- ======================================================== -->
+            <!-- 9. Related Products Tab                                     -->
+            <!-- ======================================================== -->
+
+            <xpath expr="//sheet/notebook" position="inside">
+                <page name="related_products"
+                    string="Related Products"
+                    invisible="type in ('service', 'combo')">
+
+                    <group>
+                        <div class="alert alert-info" role="alert">
+                            Configure similar alternatives and complementary products used later in POS and sales suggestions.
+                        </div>
+                    </group>
+
+                    <group string="Similar / Alternative Products">
+                        <field name="similar_product_ids"
+                            context="{'default_product_id': id, 'default_relation_type': 'similar'}"
+                            nolabel="1">
+                            <list editable="bottom">
+                                <field name="related_product_id"
+                                    domain="[('id', '!=', parent.id), ('type', 'not in', ('service', 'combo'))]"/>
+                                <field name="priority"/>
+                                <field name="note"/>
+                                <field name="relation_type" column_invisible="1"/>
+                                <button name='action_make_reciprocal'
+                                        type='object'
+                                        string="Make Reciprocal"
+                                        class="btn-secondary"/>
+                            </list>
+                        </field>
+                    </group>
+
+                    <group string="Complementary Products">
+                        <field name="complementary_product_ids"
+                            context="{'default_product_id': id, 'default_relation_type': 'complementary'}"
+                            nolabel="1">
+                            <list editable="bottom">
+                                <field name="related_product_id"
+                                    domain="[('id', '!=', parent.id), ('type', 'not in', ('service', 'combo'))]"/>
+                                <field name="priority"/>
+                                <field name="note"/>
+                                <field name="relation_type" column_invisible="1"/>
+                                <button name='action_make_reciprocal'
+                                        type='object'
+                                        string="Make Reciprocal"
+                                        class="btn-secondary"/>
+                            </list>
+                        </field>
+                    </group>
+
+                </page>
+            </xpath>
+
+            <!-- ======================================================== -->
+            <!-- 10. Low Stock Logs Tab                                     -->
+            <!-- ======================================================== -->
+            <xpath expr="//sheet/notebook" position="inside">
+                <page name="low_stock_logs"
+                      string="Low Stock Logs"
+                      invisible="type in ('service', 'combo')">
+                    <field name="low_stock_log_ids" readonly="1">
+                        <list>
+                            <field name="date"/>
+                            <field name="user_id"/>
+                            <field name="quantity"/>
+                            <field name="stock_at_time"/>
+                            <field name="order_ref"/>
+                            <field name="source"/>
+                        </list>
+                    </field>
+                </page>
+            </xpath>
+
+            <!-- ======================================================== -->
+            <!-- 11. Price History Tab                                     -->
+            <!-- ======================================================== -->
+            <xpath expr="//notebook" position="inside">
+                <page name="price_history" string="Price History">
+                    <field name="price_history_ids" readonly="1">
+                        <list>
+                            <field name="date"/>
+                            <field name="old_price"/>
+                            <field name="new_price"/>
+                            <field name="changed_by"/>
+                        </list>
+                    </field>
+                </page>
+            </xpath>
+
+            <!-- ======================================================== -->
+            <!-- 12. Barcode Actions / Multi Barcodes                      -->
+            <!-- ======================================================== -->
+            <xpath expr="//field[@name='barcode']" position="after">
+                <separator string="Barcode Actions"
+                           invisible="type in ('service', 'combo')"/>
+
+                <div class="o_row" invisible="type in ('service', 'combo')">
+                    <button name="action_generate_random_barcode"
+                            string="Generate Random Barcode"
+                            type="object"
+                            class="btn btn-secondary btn-sm"/>
+                </div>
+
+                <field name="barcode_line_ids"
+                       nolabel="1"
+                       colspan="2"
+                       invisible="type in ('service', 'combo')">
+                    <list editable="bottom" string="Multi Barcodes List">
+                        <field name="name" string="Barcode Number"/>
+                        <field name="barcode_type" string="Barcode Category"/>
+                    </list>
+                </field>
+            </xpath>
+            
+            <xpath expr="//field[@name='barcode']" position="attributes">
+                <attribute name='invisible'>1</attribute>
+            </xpath>
+
+            <xpath expr="//div[@name='button_box']" position="inside">
+                <button class="oe_stat_button"
+                        type="object"
+                        name="action_open_expired_stock"
+                        icon="fa-exclamation-triangle">
+                    <div class="o_stat_info">
+                        <span class="o_stat_value text-danger">
+                            <field name="qty_expired"/>
+                        </span>
+                        <span class="o_stat_text text-danger">
+                            Expired Stock
+                        </span>
+                    </div>
+                </button>
+            </xpath>
+        </field>
+    </record>
+
+        <!-- Product Template List -->
+    <record id="view_product_template_list_inherit_scheduled" model="ir.ui.view">
+        <field name="name">product.template.list.inherit.scheduled</field>
+        <field name="model">product.template</field>
+        <field name="inherit_id" ref="product.product_template_tree_view"/>
+        <field name="arch" type="xml">
+
+            <xpath expr="//list" position="attributes">
+                <attribute name="decoration-danger">x_is_scheduled</attribute>
+            </xpath>
+
+            <xpath expr="//field[@name='list_price']" position="replace">
+                <field name="public_price" string="Public Price"/>
+                <field name="x_is_scheduled" optional="show"/>
+                <field name="x_schedule_level" optional="show"/>
+            </xpath>
+
+        </field>
+    </record>
+
+    <!-- Product Template Kanban -->
+    <record id="product_template_kanban_public_price" model="ir.ui.view">
+        <field name="name">product.template.kanban.public.price</field>
+        <field name="model">product.template</field>
+        <field name="inherit_id" ref="product.product_template_kanban_view"/>
+        <field name="arch" type="xml">
+
+            <xpath expr="//field[@name='list_price']" position="replace">
+                <field name="public_price" readonly='1'/>
+            </xpath>
+
+        </field>
+    </record>
+
+    <!-- Product Template Search -->
+    <record id="product_template_search_view_inherit_classification" model="ir.ui.view">
+        <field name="name">product.template.search.inherit.classification</field>
+        <field name="model">product.template</field>
+        <field name="inherit_id" ref="product.product_template_search_view"/>
+        <field name="arch" type="xml">
+
+            <xpath expr="//search" position="inside">
+
+            
+                <field name="generic_name" string="Generic Name"/>
+        
+                <separator/>
+                <filter name="filter_medicine"
+                        string="Medicines"
+                        domain="[('x_classification', '=', 'medicine')]"/>
+                <filter name="filter_non_medicine"
+                        string="Non-Medicines"
+                        domain="[('x_classification', '=', 'non_medicine')]"/>
+            </xpath>
+
+            <xpath expr="//search/group" position="inside">
+                <filter name="group_by_classification"
+                        string="Classification"
+                        context="{'group_by': 'x_classification'}"/>
+            </xpath>
+
+        </field>
+    </record>
+
+    <record id="product_product_expired_card" model="ir.ui.view">
+        <field name="name">product.product.expired.card</field>
+        <field name="model">product.product</field>
+        <field name="inherit_id" ref="product.product_normal_form_view"/>
+        <field name="arch" type="xml">
+            <xpath expr="//div[@name='button_box']" position="inside">
+                <button class="oe_stat_button"
+                        type="object"
+                        name="action_open_expired_stock_variant"
+                        icon="fa-exclamation-triangle">
+                    <div class="o_stat_info">
+                        <span class="o_stat_value text-danger">
+                            <field name="qty_expired"/>
+                        </span>
+                        <span class="o_stat_text text-danger">
+                            Expired Stock
+                        </span>
+                    </div>
+                </button>
+            </xpath>
+        </field>
+    </record>
+
+    <record id="view_product_template_purchase_discount_form" model="ir.ui.view">
+            <field name="name">product.template.form.inherit.purchase.discount</field>
+            <field name="model">product.template</field>
+            <field name="inherit_id" ref="purchase.view_product_template_purchase_buttons_from"/>
+            <field name="arch" type="xml">
+                <xpath expr="//group[@name='purchase']" position="inside">
+                    <group string="Discount Information"> <field name="x_last_purchase_discount" widget="percentage"/>
+                    </group>
+                </xpath>
+            </field>
+        </record>
+
+</odoo>

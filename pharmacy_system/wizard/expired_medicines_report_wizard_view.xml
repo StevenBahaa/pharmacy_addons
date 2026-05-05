@@ -1,0 +1,54 @@
+<?xml version="1.0" encoding="utf-8"?>
+<odoo>
+
+    <record id="view_expired_medicines_report_wizard_form" model="ir.ui.view">
+        <field name="name">expired.medicines.report.wizard.form</field>
+        <field name="model">expired.medicines.report.wizard</field>
+        <field name="arch" type="xml">
+            <form string="Expired Medicines Report">
+                <group>
+                    <group string="Period">
+                        <field name="month"/>
+                        <field name="year"/>
+                    </group>
+                    <group string="Branch Filter">
+                        <field name="location_ids" widget="many2many_tags"/>
+                    </group>
+                </group>
+                <footer>
+                    <button name="action_print_pdf"
+                            string="Export PDF"
+                            type="object"
+                            class="btn-primary"/>
+                    <button string="Cancel"
+                            class="btn-secondary"
+                            special="cancel"/>
+                </footer>
+            </form>
+        </field>
+    </record>
+
+    <record id="action_expired_medicines_report_wizard" model="ir.actions.act_window">
+        <field name="name">Expired Medicines Report</field>
+        <field name="res_model">expired.medicines.report.wizard</field>
+        <field name="view_mode">form</field>
+        <field name="target">new</field>
+    </record>
+
+    <record id="action_report_expired_medicines" model="ir.actions.report">
+        <field name="name">Expired Medicines Report</field>
+        <field name="model">expired.medicines.report.wizard</field>
+        <field name="report_type">qweb-pdf</field>
+        <field name="report_name">pharmacy_system.expired_medicines</field>
+        <field name="report_file">pharmacy_system.expired_medicines</field>
+        <field name="print_report_name">'Expired_Medicines_%s_%02d-%s' % (object.location_ids and object.location_ids[0].name.replace('/', '_').replace(' ', '_') or 'All', int(object.month), object.year)</field>
+    </record>
+
+    <menuitem
+        id="menu_expired_medicines_report"
+        name="Expired Medicines Report"
+        parent="stock.menu_warehouse_report"
+        action="action_expired_medicines_report_wizard"
+        sequence="20"/>
+
+</odoo>

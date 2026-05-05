@@ -1,0 +1,48 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<templates id="template" xml:space="preserve">
+
+    <t t-name="pharmacy_system.ScheduledMedicineWarningPopup">
+        <Dialog title="props.title">
+            <div class="scheduled-medicine-warning-popup">
+                <div class="scheduled-warning-content">
+                    <div class="alert alert-warning mb-3">
+                        <i class="fa fa-exclamation-triangle me-2"/>
+                        <strong>Controlled Substance</strong>
+                    </div>
+
+                    <p class="schedule-level mb-2">
+                        <strong>Classification:</strong>
+                        <span class="badge bg-danger ms-2">
+                            <t t-esc="props.scheduleName"/>
+                        </span>
+                    </p>
+
+                    <p class="warning-message mt-3">
+                        <t t-esc="props.body"/>
+                    </p>
+
+                    <div class="alert alert-info mt-3">
+                        <small>
+                            <i class="fa fa-info-circle me-1"/>
+                            Special documentation and prescription verification may be required.
+                        </small>
+                    </div>
+                </div>
+            </div>
+
+            <t t-set-slot="footer">
+                <div class="button-container d-flex gap-2 justify-content-start">
+                    <button class="btn btn-secondary" t-on-click="onCancel">
+                        <i class="fa fa-times me-2"/>
+                        <t t-esc="props.cancelText"/>
+                    </button>
+                    <button class="btn btn-primary" t-on-click="onConfirm">
+                        <i class="fa fa-check me-2"/>
+                        <t t-esc="props.confirmText"/>
+                    </button>
+                </div>
+            </t>
+        </Dialog>
+    </t>
+
+</templates>

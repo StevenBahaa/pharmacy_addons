@@ -1,0 +1,51 @@
+/* Scope only Sale Order Lines */
+.o_sale_order_line_suggestion_compact .o_list_table colgroup col:first-child {
+    width: 18px !important;
+    min-width: 18px !important;
+    max-width: 18px !important;
+}
+
+/* Drag handle column */
+.o_sale_order_line_suggestion_compact .o_list_table th:first-child,
+.o_sale_order_line_suggestion_compact .o_list_table td:first-child {
+    width: 18px !important;
+    min-width: 18px !important;
+    max-width: 18px !important;
+    padding-left: 2px !important;
+    padding-right: 0 !important;
+    text-align: center !important;
+}
+
+/* Suggestion button */
+.o_sale_order_line_suggestion_compact .o_product_suggestion_btn {
+    padding: 0 !important;
+    margin: 0 8px 0 0 !important;
+    border: 0 !important;
+    background: transparent !important;
+    box-shadow: none !important;
+
+    width: 22px !important;
+    min-width: 22px !important;
+    max-width: 22px !important;
+
+    display: inline-flex !important;
+    align-items: center !important;
+    justify-content: center !important;
+
+    opacity: 0.7;
+    line-height: 1 !important;
+}
+
+.o_sale_order_line_suggestion_compact .o_list_table td:has(.o_product_suggestion_btn) {
+    padding-right: 8px !important;
+}
+
+.o_sale_order_line_suggestion_compact .o_product_suggestion_btn:hover {
+    opacity: 1;
+    color: #f0ad4e !important;
+}
+
+.o_sale_order_line_suggestion_compact .o_product_suggestion_btn .fa {
+    font-size: 14px !important;
+    pointer-events: none;
+}

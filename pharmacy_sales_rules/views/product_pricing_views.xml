@@ -1,0 +1,24 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<odoo>
+    <record id="view_product_template_pricing_rules" model="ir.ui.view">
+        <field name="name">product.template.pricing.rules.pharmacy</field>
+        <field name="model">product.template</field>
+        <field name="inherit_id" ref="pharmacy_base.view_medicine_form"/>
+        <field name="arch" type="xml">
+            <xpath expr="//page[@name='pharmacy_page']/group[1]" position="inside">
+                <group string="Sales Rules">
+                    <field name="max_qty_per_invoice"/>
+                    <field name="activate_stock_low"/>
+                    <field name="low_stock_limit" invisible="not activate_stock_low"/>
+                    <field name="max_qty_low_stock" invisible="not activate_stock_low"/>
+                    <field name="is_low_stock" readonly="1"/>
+                    <field name="log_count" readonly="1"/>
+                </group>
+                <group string="Commission">
+                    <field name="commission_feature_enabled" invisible="1"/>
+                    <field name="commission_percentage"/>
+                </group>
+            </xpath>
+        </field>
+    </record>
+</odoo>

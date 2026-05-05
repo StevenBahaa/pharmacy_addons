@@ -1,0 +1,74 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<odoo>
+    <!-- Inventory Adjustment View -->
+    <record id="view_stock_quant_tree_inherit_expired" model="ir.ui.view">
+        <field name="name">stock.quant.tree.expired</field>
+        <field name="model">stock.quant</field>
+        <field name="inherit_id" ref="stock.view_stock_quant_tree_inventory_editable"/>
+        <field name="arch" type="xml">
+            <xpath expr="//field[@name='location_id']" position="attributes">
+                <attribute name="domain">
+                    ['|', ('usage','=','internal'), ('usage','=','expired')]
+                </attribute>
+            </xpath>
+        </field>
+    </record>
+    
+    <!-- Standard Tree View -->
+    <record id="view_stock_quant_tree_inherit_expired_standard" model="ir.ui.view">
+        <field name="name">stock.quant.tree.expired.standard</field>
+        <field name="model">stock.quant</field>
+        <field name="inherit_id" ref="stock.view_stock_quant_tree"/>
+        <field name="arch" type="xml">
+            <xpath expr="//field[@name='location_id']" position="attributes">
+                <attribute name="domain">
+                    ['|', ('usage','=','internal'), ('usage','=','expired')]
+                </attribute>
+            </xpath>
+        </field>
+    </record>
+
+    <!-- Expiry Month/Year in Inventory Adjustment -->
+    <record id="view_stock_quant_tree_inventory_editable_expiry" model="ir.ui.view">
+        <field name="name">stock.quant.inventory.tree.expiry</field>
+        <field name="model">stock.quant</field>
+        <field name="inherit_id" ref="stock.view_stock_quant_tree_inventory_editable"/>
+        <field name="arch" type="xml">
+            <xpath expr="//field[@name='lot_id']" position="after">
+                <field name="x_expiry_month_year" column_invisible="0"/>
+            </xpath>
+            <xpath expr="//field[@name='expiration_date']" position="attributes">
+                <attribute name="column_invisible">1</attribute>
+            </xpath>
+        </field>
+    </record>
+
+    <!-- Expiry Month/Year in Standard Tree -->
+    <record id="view_stock_quant_tree_expiry" model="ir.ui.view">
+        <field name="name">stock.quant.tree.expiry</field>
+        <field name="model">stock.quant</field>
+        <field name="inherit_id" ref="stock.view_stock_quant_tree"/>
+        <field name="arch" type="xml">
+            <xpath expr="//field[@name='lot_id']" position="after">
+                <field name="x_expiry_month_year" column_invisible="0"/>
+            </xpath>
+            <!-- removal_date IS in the parent view (added by product_expiry), expiration_date is NOT -->
+            <xpath expr="//field[@name='removal_date']" position="attributes">
+                <attribute name="column_invisible">1</attribute>
+            </xpath>
+        </field>
+    </record>
+
+    <record id="view_stock_quant_search_expired_filter" model="ir.ui.view">
+        <field name="name">stock.quant.search.expired.filter</field>
+        <field name="model">stock.quant</field>
+        <field name="inherit_id" ref="stock.quant_search_view"/>
+        <field name="arch" type="xml">
+            <xpath expr="//search" position="inside">
+                <filter name="expired_stock"
+                        string="Expired Stock"
+                        domain="[('location_id.is_expired_location','=',True)]"/>
+            </xpath>
+        </field>
+    </record>
+</odoo>

@@ -1,0 +1,44 @@
+<odoo>
+
+    <!-- Wizard Form -->
+    <record id="view_bulk_price_update_form" model="ir.ui.view">
+        <field name="name">bulk.price.update.form</field>
+        <field name="model">bulk.price.update</field>
+        <field name="arch" type="xml">
+            <form string="Bulk Price Update">
+                <group>
+                    <field name="product_ids" widget="many2many_tags"/>
+                    <field name="update_type"/>
+                    <field name="value"/>
+                </group>
+
+                <footer>
+                    <button string="Apply" type="object" name="action_apply" class="btn-primary"/>
+                    <button string="Cancel" special="cancel"/>
+                </footer>
+            </form>
+        </field>
+    </record>
+
+
+    <record id="action_bulk_price_update" model="ir.actions.act_window">
+        <field name="name">Bulk Price Update</field>
+        <field name="res_model">bulk.price.update</field>
+        <field name="view_mode">form</field>
+        <field name="target">new</field>
+
+        <!-- 👇 THIS IS THE MAGIC -->
+        <field name="binding_model_id" ref="product.model_product_template"/>
+        <field name="binding_view_types">list</field>
+    </record>
+
+    <!-- Action -->
+    <record id="action_bulk_price_update" model="ir.actions.act_window">
+        <field name="name">Bulk Price Update</field>
+        <field name="res_model">bulk.price.update</field>
+        <field name="view_mode">form</field>
+        <field name="target">new</field>
+        <field name="context">{}</field>
+    </record>
+
+</odoo>

@@ -1,0 +1,19 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<odoo>
+    <record id="res_config_settings_view_form_inherit_product_commission" model="ir.ui.view">
+        <field name="name">res.config.settings.view.form.inherit.product.commission</field>
+        <field name="model">res.config.settings</field>
+        <field name="inherit_id" ref="sale.res_config_settings_view_form"/>
+        <field name="arch" type="xml">
+            <xpath expr="//app[@name='sale_management']" position="inside">
+                <block title="Commissions">
+                    <setting id="enable_product_commission_setting"
+                        string="Enable Product Commission"
+                        help="Enable margin-based commission calculation on sales order lines.">
+                        <field name="enable_product_commission"/>
+                    </setting>
+                </block>
+            </xpath>
+        </field>
+    </record>
+</odoo>

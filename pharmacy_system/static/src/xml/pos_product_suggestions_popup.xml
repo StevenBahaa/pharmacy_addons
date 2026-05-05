@@ -1,0 +1,112 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<templates id="template" xml:space="preserve">
+
+    <t t-name="pharmacy_system.ProductSuggestionsPopup">
+        <Dialog title="props.title or 'Suggested Products'">
+
+            <div class="p-3 o_pos_suggestion_popup">
+
+                <div class="alert alert-info py-2 mb-3">
+                    Review alternative and complementary product suggestions before adding items to the order.
+                </div>
+
+                <!-- Similar Products -->
+                <t t-if="props.similarProducts and props.similarProducts.length">
+                    <div class="mb-4">
+                        <div class="d-flex align-items-center justify-content-between mb-2">
+                            <h4 class="m-0">Similar / Alternatives</h4>
+                            <span class="badge rounded-pill text-bg-secondary">
+                                <t t-esc="props.similarProducts.length"/> item(s)
+                            </span>
+                        </div>
+
+                        <div class="row g-2">
+                            <t t-foreach="props.similarProducts" t-as="product" t-key="product.id">
+                                <div class="col-12">
+                                    <div class="card shadow-sm border-0">
+                                        <div class="card-body py-2">
+                                            <div class="d-flex justify-content-between align-items-center gap-3">
+                                                <div>
+                                                    <div class="fw-bold" t-esc="product.display_name"/>
+                                                    <div class="text-muted small">
+                                                        Alternative product
+                                                    </div>
+                                                </div>
+<div class="d-flex align-items-center gap-2">
+                                                <span class="badge text-bg-light border">
+                                                    Similar
+                                                </span>
+                                                <button class="btn btn-outline-primary btn-sm"
+                                                        t-on-click="() => this.replaceWithSimilarProduct(product)">
+                                                    Replace
+                                                </button>
+                                                </div>
+                                            </div>
+                                        </div>
+                                    </div>
+                                </div>
+                            </t>
+                        </div>
+                    </div>
+                </t>
+
+                <!-- Complementary Products -->
+                <t t-if="props.complementaryProducts and props.complementaryProducts.length">
+                    <div>
+                        <div class="d-flex align-items-center justify-content-between mb-2">
+                            <h4 class="m-0">Complementary Products</h4>
+                            <span class="badge rounded-pill text-bg-primary">
+                                <t t-esc="props.complementaryProducts.length"/> item(s)
+                            </span>
+                        </div>
+
+                        <div class="row g-2">
+                            <t t-foreach="props.complementaryProducts" t-as="product" t-key="product.id">
+                                <div class="col-12">
+                                    <div class="card shadow-sm border-0">
+                                        <div class="card-body py-2">
+                                            <div class="d-flex justify-content-between align-items-center gap-3">
+                                                <div>
+                                                    <div class="fw-bold" t-esc="product.display_name"/>
+                                                    <div class="text-muted small">
+                                                        Recommended add-on product
+                                                    </div>
+                                                </div>
+
+                                                <div class="d-flex align-items-center gap-2">
+                                                    <span class="badge text-bg-light border">
+                                                        Complementary
+                                                    </span>
+
+                                                    <button class="btn btn-primary btn-sm"
+                                                            t-on-click="() => this.addComplementaryProduct(product)">
+                                                        Add
+                                                    </button>
+                                                </div>
+                                            </div>
+                                        </div>
+                                    </div>
+                                </div>
+                            </t>
+                        </div>
+                    </div>
+                </t>
+
+                <t t-if="(!props.similarProducts or !props.similarProducts.length) and (!props.complementaryProducts or !props.complementaryProducts.length)">
+                    <div class="text-center text-muted py-4">
+                        No suggestions available.
+                    </div>
+                </t>
+
+            </div>
+
+            <t t-set-slot="footer">
+                <button class="btn btn-secondary" t-on-click="close">
+                    Close
+                </button>
+            </t>
+
+        </Dialog>
+    </t>
+
+</templates>

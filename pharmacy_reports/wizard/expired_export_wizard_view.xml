@@ -1,0 +1,51 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<odoo>
+    <record id="view_expired_export_wizard_form" model="ir.ui.view">
+        <field name="name">expired.export.wizard.form</field>
+        <field name="model">expired.export.wizard</field>
+        <field name="arch" type="xml">
+            <form string="Export Near-Expiry Medicines">
+                <sheet>
+                    <!-- Filter selector + live record count on the same row -->
+                    <div class="row mb-2" invisible="state == 'get'">
+                        <div class="col-8">
+                            <field name="filter_type" widget="radio" options="{'horizontal': true}"/>
+                        </div>
+                        <div class="col-4 d-flex align-items-center justify-content-end">
+                            <span class="o_form_label me-1">Records:</span>
+                            <field name="record_count" readonly="1"
+                                   style="font-weight:bold; min-width:30px;"/>
+                        </div>
+                    </div>
+                    <!-- Live preview table — updates on filter change -->
+                    <div invisible="state == 'get'">
+                        <field name="preview_html" widget="html" readonly="1"/>
+                    </div>
+                    <!-- Download state -->
+                    <group invisible="state != 'get'">
+                        <div class="alert alert-success" role="alert">
+                            ✅ Your file is ready. Click below to download.
+                        </div>
+                        <field name="file_data"
+                               filename="file_name"
+                               widget="binary"
+                               string="Download Excel File"/>
+                        <field name="file_name" invisible="1"/>
+                    </group>
+                    <field name="state" invisible="1"/>
+                    <field name="filter_label" invisible="1"/>
+                </sheet>
+                <footer>
+                    <button name="action_export"
+                            type="object"
+                            string="📥 Export to Excel"
+                            class="btn-primary"
+                            invisible="state != 'choose'"/>
+                    <button string="Close"
+                            class="btn-secondary"
+                            special="cancel"/>
+                </footer>
+            </form>
+        </field>
+    </record>
+</odoo>

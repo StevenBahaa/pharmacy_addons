@@ -1,0 +1,50 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<odoo>
+
+    <!-- Transfer Confirmation Wizard -->
+    <record id="view_expired_transfer_wizard_form" model="ir.ui.view">
+        <field name="name">expired.transfer.wizard.form</field>
+        <field name="model">expired.transfer.wizard</field>
+        <field name="arch" type="xml">
+            <form string="Confirm Expired Transfer">
+                <sheet>
+                    <div class="alert alert-warning" role="alert">
+                        <h4 class="alert-heading">⚠️ Confirm Transfer</h4>
+                        <p> You are about to transfer <strong>
+                                <field name="lot_count" readonly="1" />
+                            </strong>
+                            medicine lot(s) to the Expired location. <br />
+                            <strong>This action
+                            cannot be undone.</strong>
+                        </p>
+                    </div>
+                    <field name="quant_ids" widget="many2many_list"
+                        readonly="1"
+                        string="Selected Lots">
+                        <list>
+                            <field name="product_id" />
+                            <field name="lot_id" />
+                            <field name="x_expiry_month_year" string="Expiry" />
+                            <field name="quantity" />
+                            <field name="location_id" />
+                        </list>
+                    </field>
+                </sheet>
+                <footer>
+                    <button name="action_confirm"
+                        type="object"
+                        string="✔ Confirm Transfer"
+                        class="btn-danger" />
+
+                    <button name="action_cancel"
+                        type="object"
+                        string="Cancel"
+                        class="btn-secondary"
+                        special="cancel" />
+                        
+                </footer>
+            </form>
+        </field>
+    </record>
+
+</odoo>

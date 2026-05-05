@@ -1,0 +1,80 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<odoo>
+
+    <!-- Search View -->
+    <record id="view_sale_commission_entry_search" model="ir.ui.view">
+        <field name="name">sale.commission.entry.search</field>
+        <field name="model">sale.commission.entry</field>
+        <field name="arch" type="xml">
+            <search>
+                <field name="salesperson_id"/>
+                <field name="product_id"/>
+                <field name="customer_id"/>
+                <field name="entry_type"/>
+                <field name="date"/>
+
+                <filter name="filter_delivery" string="Deliveries" domain="[('entry_type', '=', 'delivery')]"/>
+                <filter name="filter_return" string="Returns" domain="[('entry_type', '=', 'return')]"/>
+
+                <group expand="0" string="Group By">
+                    <filter name="group_salesperson" string="Salesperson" context="{'group_by': 'salesperson_id'}"/>
+                    <filter name="group_product" string="Product" context="{'group_by': 'product_id'}"/>
+                    <filter name="group_date" string="Date" context="{'group_by': 'date:day'}"/>
+                    <filter name="group_month" string="Month" context="{'group_by': 'date:month'}"/>
+                </group>
+            </search>
+        </field>
+    </record>
+
+    <!-- List View -->
+    <record id="view_sale_commission_entry_tree" model="ir.ui.view">
+        <field name="name">sale.commission.entry.tree</field>
+        <field name="model">sale.commission.entry</field>
+        <field name="arch" type="xml">
+            <list>
+                <field name='sale_order_id'/>
+                <field name="date"/>
+                <field name="salesperson_id"/>
+                <field name="customer_id"/>
+                <field name="product_id"/>
+                <field name="entry_type"/>
+                <field name="quantity"/>
+                <field name="commission_percentage"/>
+                <field name="margin_base"/>
+                <field name="commission_amount"/>
+            </list>
+        </field>
+    </record>
+
+    <!-- Pivot View -->
+    <record id="view_sale_commission_entry_pivot" model="ir.ui.view">
+        <field name="name">sale.commission.entry.pivot</field>
+        <field name="model">sale.commission.entry</field>
+        <field name="arch" type="xml">
+            <pivot string="Commission Analysis">
+                <field name="salesperson_id" type="row"/>
+                <field name="product_id" type="row"/>
+                <field name="date" type="col" interval="month"/>
+                <field name="commission_amount" type="measure"/>
+                <field name="margin_base" type="measure"/>
+                <field name="quantity" type="measure"/>
+            </pivot>
+        </field>
+    </record>
+
+   <record id="action_sale_commission_entry" model="ir.actions.act_window">
+        <field name="name">Commission Entries</field>
+        <field name="res_model">sale.commission.entry</field>
+        <field name="view_mode">list,pivot,graph</field>
+        <field name="search_view_id" ref="view_sale_commission_entry_search"/>
+        <field name="context">{'group_by': ['salesperson_id', 'product_id']}</field>
+    </record>
+
+    <menuitem id="menu_sale_commission_summary"
+            name="Commission Entries"
+            parent="sale.sale_menu_root"
+            action="action_sale_commission_entry"
+            sequence="90"
+            groups="pharmacy_system.group_pharmacy_manager,pharmacy_system.group_pricing_manager"/>
+
+</odoo>

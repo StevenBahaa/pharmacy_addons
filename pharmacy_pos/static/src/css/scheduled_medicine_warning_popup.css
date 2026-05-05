@@ -1,0 +1,32 @@
+.scheduled-medicine-warning-popup {
+    width: 520px;
+    max-width: 90vw;
+}
+
+.scheduled-warning-content {
+    padding: 1rem;
+}
+
+.scheduled-warning-content .schedule-level {
+    font-size: 1.1em;
+}
+
+.scheduled-warning-content .badge {
+    font-size: 0.9em;
+    padding: 0.5em 1em;
+}
+
+.scheduled-warning-content .warning-message {
+    font-size: 1.05em;
+    line-height: 1.6;
+}
+
+.scheduled-medicine-warning-popup .button-container {
+    display: flex;
+    gap: 1rem;
+}
+
+.modal-dialog:has(.scheduled-medicine-warning-popup) {
+    width: fit-content;
+    max-width: 90vw;
+}

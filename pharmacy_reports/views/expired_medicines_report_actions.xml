@@ -1,0 +1,30 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<odoo>
+    <record id="view_expired_medicines_list_reports" model="ir.ui.view">
+        <field name="name">expired.medicines.list.reports</field>
+        <field name="model">stock.quant</field>
+        <field name="inherit_id" ref="pharmacy_stock_expiry.view_expired_medicines_list"/>
+        <field name="arch" type="xml">
+            <xpath expr="//list" position="inside">
+                <header>
+                    <button name="action_open_expired_report_wizard"
+                            string="Print Expired Report"
+                            type="object"
+                            class="btn-primary"
+                            display="always"/>
+                </header>
+            </xpath>
+        </field>
+    </record>
+
+    <record id="action_open_export_wizard_binding" model="ir.actions.server">
+        <field name="name">Export to Excel</field>
+        <field name="model_id" ref="stock.model_stock_quant"/>
+        <field name="binding_model_id" ref="stock.model_stock_quant"/>
+        <field name="binding_view_types">list</field>
+        <field name="state">code</field>
+        <field name="code">
+            action = records.action_open_export_wizard()
+        </field>
+    </record>
+</odoo>

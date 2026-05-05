@@ -1,0 +1,81 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<odoo>
+    <record id="view_medicine_form" model="ir.ui.view">
+        <field name="name">product.template.form.pharmacy.base</field>
+        <field name="model">product.template</field>
+        <field name="inherit_id" ref="product.product_template_only_form_view"/>
+        <field name="arch" type="xml">
+            <xpath expr="//field[@name='name']" position="after">
+                <field name="x_classification"/>
+                <field name="generic_name"/>
+                <field name="manufacturer_id"/>
+            </xpath>
+
+            <xpath expr="//field[@name='uom_id']" position="after">
+                <field name="sell_as"/>
+                <field name="units_per_package" invisible="sell_as != 'unit'"/>
+                <field name="package_uom_id" readonly="1" invisible="sell_as != 'unit'"/>
+            </xpath>
+
+            <xpath expr="//field[@name='list_price']" position="after">
+                <field name="public_price"/>
+                <field name="currency_display_price" readonly="1"/>
+                <field name="gov_price_lock" groups="pharmacy_base.group_pharmacy_manager"/>
+                <field name="x_avg_cost_display" readonly="1"/>
+            </xpath>
+
+            <xpath expr="//notebook" position="inside">
+                <page name="pharmacy_page" string="Pharmacy">
+                    <group>
+                        <group string="Scheduled Medicine">
+                            <field name="x_is_scheduled"/>
+                            <field name="x_schedule_level" invisible="not x_is_scheduled"/>
+                        </group>
+                    </group>
+                    <group string="Related Products">
+                        <field name="similar_product_ids">
+                            <list editable="bottom">
+                                <field name="related_product_id"/>
+                                <field name="relation_type"/>
+                                <field name="priority"/>
+                                <field name="active"/>
+                                <button name="action_make_reciprocal" type="object" string="Reciprocal"/>
+                            </list>
+                        </field>
+                        <field name="complementary_product_ids">
+                            <list editable="bottom">
+                                <field name="related_product_id"/>
+                                <field name="relation_type"/>
+                                <field name="priority"/>
+                                <field name="active"/>
+                                <button name="action_make_reciprocal" type="object" string="Reciprocal"/>
+                            </list>
+                        </field>
+                    </group>
+                    <group string="Additional Barcodes">
+                        <button name="action_generate_random_barcode" type="object" string="Generate Barcode"/>
+                        <field name="barcode_line_ids">
+                            <list editable="bottom">
+                                <field name="name"/>
+                                <field name="barcode_type"/>
+                            </list>
+                        </field>
+                    </group>
+                </page>
+            </xpath>
+        </field>
+    </record>
+
+    <record id="view_product_template_list_inherit_scheduled" model="ir.ui.view">
+        <field name="name">product.template.list.pharmacy.base</field>
+        <field name="model">product.template</field>
+        <field name="inherit_id" ref="product.product_template_tree_view"/>
+        <field name="arch" type="xml">
+            <xpath expr="//field[@name='name']" position="after">
+                <field name="x_classification" optional="show"/>
+                <field name="generic_name" optional="hide"/>
+                <field name="x_is_scheduled" optional="hide"/>
+            </xpath>
+        </field>
+    </record>
+</odoo>
