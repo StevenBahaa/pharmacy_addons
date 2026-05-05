@@ -8,9 +8,11 @@
     'license': 'LGPL-3',
     'depends': ['pharmacy_base', 'pharmacy_stock_expiry', 'purchase', 'stock', 'account', 'product_expiry'],
     'data': [
+        'security/ir.model.access.csv',
         'views/purchase_order_line_uom_views.xml',
-        'views/purchase_order_consignment_views.xml',
         'views/product_purchase_views.xml',
+        'views/purchase_order_consignment_views.xml',
+        'wizard/consignment_track_wizard_views.xml',
     ],
     'installable': True,
     'application': False,

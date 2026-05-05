@@ -1,2 +1,4 @@
 id,name,model_id:id,group_id:id,perm_read,perm_write,perm_create,perm_unlink
 access_consignment_payment,consignment.payment,model_pharmacy_consignment_payment,base.group_user,1,1,1,1
+access_consignment_track_wizard,consignment.track.wizard,model_pharmacy_consignment_track_wizard,base.group_user,1,1,1,1
+access_consignment_track_wizard_line,consignment.track.wizard.line,model_pharmacy_consignment_track_wizard_line,base.group_user,1,1,1,1
