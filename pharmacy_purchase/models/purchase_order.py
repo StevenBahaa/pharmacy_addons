@@ -27,7 +27,7 @@ class PurchaseOrder(models.Model):
                 "payable_remaining_qty": line.qty_received  # TODO: refine calculation
             })
             for line in self.order_line
-            if line.product_id.type == 'product'     
+            if line.product_id and line.product_id.type == 'consu'     
            ]
        })
 

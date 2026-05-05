@@ -17,7 +17,7 @@
                     type="object"
                     string="Consignment Tracking"
                     class="btn-primary"
-                    invisible="not (is_consignment and state in ['draft', 'sent'])" />
+                    invisible="not is_consignment or state in ['draft', 'sent', 'cancel']" />
             </xpath>
         </field>
     </record>
