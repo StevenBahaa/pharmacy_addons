@@ -12,30 +12,38 @@ class PurchaseOrder(models.Model):
         )
 
     def action_open_consignment_tracking(self):
-       self.ensure_one()
-       
-       wizard = self.env['pharmacy.consignment.track.wizard'].create({
-           'purchase_order_id': self.id,
-           "line_ids" : [
-            (0, 0, { 
+        self.ensure_one()
+        
+        wizard_vals = {
+            'purchase_order_id': self.id,
+            'line_ids': [],
+        }
+
+        for line in self.order_line:
+            if not line.product_id or line.product_id.type != 'consu':
+                continue
+                
+            sold_qty = line._get_consignment_sold_qty_sales_only()
+            already_paid_qty = 0.0  # TODO: implement actual payment tracking
+            payable_now_qty = max(sold_qty - already_paid_qty, 0.0)
+            
+            wizard_vals['line_ids'].append((0, 0, { 
                 "purchase_order_line_id": line.id,  
                 "product_id": line.product_id.id,  
                 "received_qty": line.qty_received,  
-                "sold_qty": 0,  # TODO: calculate based on stock.move lines
-                "already_paid_qty": 0,  # TODO: implement payment tracking
-                "payable_now_qty": 0,  # TODO: calculate
-                "payable_remaining_qty": line.qty_received  # TODO: refine calculation
-            })
-            for line in self.order_line
-            if line.product_id and line.product_id.type == 'consu'     
-           ]
-       })
+                "sold_qty": sold_qty,  
+                "already_paid_qty": already_paid_qty,  
+                "payable_now_qty": payable_now_qty,  
+                "payable_remaining_qty": line.qty_received - already_paid_qty
+            }))
 
-       return {
-           "name": "Track Consignment Stock",
-           "type": "ir.actions.act_window",
-           "res_model": "pharmacy.consignment.track.wizard",
-           "view_mode": "form",
-           "res_id": wizard.id,
-           "target": "new",
-       }
+        wizard = self.env['pharmacy.consignment.track.wizard'].create(wizard_vals)   
+
+        return {
+            "name": "Track Consignment Stock",
+            "type": "ir.actions.act_window",
+            "res_model": "pharmacy.consignment.track.wizard",
+            "view_mode": "form",
+            "res_id": wizard.id,
+            "target": "new",
+        }

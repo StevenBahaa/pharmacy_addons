@@ -36,6 +36,44 @@ class PurchaseOrderLine(models.Model):
         return self.product_id.uom_id
 
     # -------------------------------------------------------------------------
+    # HELPERS: Consignment Receipt
+    # -------------------------------------------------------------------------
+    def _get_consignment_receipt_start_date(self):
+        self.ensure_one()
+        pickings = self.order_id.picking_ids.filtered(
+            lambda p: p.state == "done" and p.picking_type_id.code == "incoming"
+        )
+
+        if not pickings:
+            return False
+        
+        return min(pickings.mapped("date_done"))
+
+    def _get_consignment_sold_qty_sales_only(self):
+        self.ensure_one()
+        start_date = self._get_consignment_receipt_start_date()
+
+        if not start_date:
+            return 0.0
+
+        domain = [
+            ('product_id', '=', self.product_id.id),
+            ('order_id.state', 'in', ['sale', 'done']),
+            ('order_id.date_order', '>=', start_date),
+        ]
+
+        sale_lines = self.env['sale.order.line'].search(domain)
+        sold_qty = 0.0
+
+        for sale_line in sale_lines:
+            sold_qty += sale_line.product_uom._compute_quantity(
+                sale_line.product_uom_qty,
+                self.product_uom,
+            )
+
+        return sold_qty
+        
+    # -------------------------------------------------------------------------
     # ONCHANGE: FORCE PACKAGE UOM
     # -------------------------------------------------------------------------
     @api.onchange('product_id')
@@ -121,3 +159,5 @@ class PurchaseOrderLine(models.Model):
                     )
 
         return super().write(vals)
+
+    
