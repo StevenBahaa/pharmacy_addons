@@ -21,12 +21,31 @@ class ConsignmentPayment(models.Model):
         tracking=True,
     )
 
+    consignment_stock_line_id = fields.Many2one(
+        comodel_name='pharmacy.consignment.stock.line',
+        string='Consignment Stock Line',
+        ondelete='cascade',
+        index=True,
+    )
+
     product_id = fields.Many2one(
         comodel_name='product.product',
         string='Product',
         required=True,
         ondelete='cascade',
         tracking=True,
+    )
+
+    lot_id = fields.Many2one(
+        comodel_name='stock.lot',
+        string='Lot/Batch',
+        index=True,
+    )
+
+    expiry_date = fields.Date(
+        string='Expiry Date',
+        related='lot_id.expiry_date',
+        store=True,
     )
 
     vendor_bill_id = fields.Many2one(
@@ -37,9 +56,22 @@ class ConsignmentPayment(models.Model):
         tracking=True,
     )
 
+    vendor_bill_line_id = fields.Many2one(
+        comodel_name='account.move.line',
+        string='Vendor Bill Line',
+        ondelete='cascade',
+    )
+
+    billed_qty = fields.Float(
+        string='Billed Qty',
+        required=True,
+    )
+
+    # For backward compatibility if needed, but we'll use billed_qty
     quantity_paid = fields.Float(
         string='Quantity Paid',
-        required=True,
+        related='billed_qty',
+        readonly=True,
     )
 
     date = fields.Date(
@@ -57,19 +89,22 @@ class ConsignmentPayment(models.Model):
     state = fields.Selection(
         [
             ('draft', 'Draft'),
-            ('paid', 'Paid'),
+            ('paid', 'Billed'),
         ],
         string='State',
+        compute='_compute_state',
+        store=True,
         default='draft',
-        required=True,
         tracking=True,
     )
 
-    def action_paid(self):
-        self.write({'state': 'paid'})
-
-    def action_cancel(self):
-        self.write({'state': 'draft'})
+    @api.depends('vendor_bill_id.state')
+    def _compute_state(self):
+        for record in self:
+            if record.vendor_bill_id.state == 'posted':
+                record.state = 'paid'
+            else:
+                record.state = 'draft'
     
 
     

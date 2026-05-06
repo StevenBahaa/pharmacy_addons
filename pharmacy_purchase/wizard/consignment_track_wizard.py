@@ -23,7 +23,7 @@ class ConsignmentTrackWizard(models.TransientModel):
 
         payable_lines = self.line_ids.filtered(lambda l: l.payable_now_qty > 0)
         if not payable_lines:
-            raise UserError("No new sold units to pay for. (لا توجد كميات مباعة غير مدفوعة)")
+            raise UserError("No new sold units to pay for.")
 
         po = self.purchase_order_id
 
@@ -33,7 +33,7 @@ class ConsignmentTrackWizard(models.TransientModel):
 
             invoice_lines.append((0, 0, {
                 "product_id": line.product_id.id,
-                "name": po_line.name or line.product_id.display_name,
+                "name": f"{po_line.name or line.product_id.display_name} (Lot: {line.lot_id.name})",
                 "quantity": line.payable_now_qty,
                 "price_unit": po_line.price_unit,
                 "purchase_line_id": po_line.id,
@@ -50,13 +50,17 @@ class ConsignmentTrackWizard(models.TransientModel):
             "is_consignment_bill": True,
         })
 
-        for line in payable_lines:
+        # Link payments to tracking lines
+        for line, inv_line in zip(payable_lines, bill.invoice_line_ids):
             self.env["pharmacy.consignment.payment"].create({
                 "purchase_order_id": po.id,
                 "purchase_order_line_id": line.purchase_order_line_id.id,
+                "consignment_stock_line_id": line.consignment_stock_line_id.id,
                 "product_id": line.product_id.id,
+                "lot_id": line.lot_id.id,
                 "vendor_bill_id": bill.id,
-                "quantity_paid": line.payable_now_qty,
+                "vendor_bill_line_id": inv_line.id,
+                "billed_qty": line.payable_now_qty,
             })
 
         po.message_post(
@@ -73,33 +77,26 @@ class ConsignmentTrackWizard(models.TransientModel):
         }
 
     def action_create_backorder(self):
-        """
-        Creates a backorder for the PO lines that are not fully received.
-        In standard Odoo, this is usually handled via the picking.
-        If the prompt implies creating it from here, we will trigger the 
-        standard Odoo backorder confirmation if there are pending pickings.
-        """
         self.ensure_one()
-        pickings = self.purchase_order_id.picking_ids.filtered(lambda p: p.state not in ['done', 'cancel'])
+
+        pickings = self.purchase_order_id.picking_ids.filtered(
+            lambda picking: picking.state not in ('done', 'cancel')
+        )
         if not pickings:
             raise UserError("No pending pickings to backorder.")
-        
-        # This is a simplified version. Usually, you'd want to use the standard wizard.
-        # But since the prompt asks for a button in THIS wizard, we will just 
-        # log that it was requested and potentially trigger the standard flow.
-        self.purchase_order_id.message_post(body="Backorder requested from Consignment Tracking Wizard.")
-        
-        # For now, let's just return an action to open the pickings
+
+        self.purchase_order_id.message_post(
+            body="Backorder requested from Consignment Tracking Wizard."
+        )
+
         return {
             "type": "ir.actions.act_window",
             "name": "Inventory Transfers",
             "res_model": "stock.picking",
             "view_mode": "list,form",
-            "domain": [('id', 'in', pickings.ids)],
+            "domain": [("id", "in", pickings.ids)],
             "target": "current",
         }
-
-
 
 class ConsignmentTrackWizardLine(models.TransientModel):
     _name = "pharmacy.consignment.track.wizard.line"
@@ -111,6 +108,11 @@ class ConsignmentTrackWizardLine(models.TransientModel):
         ondelete='cascade',
     )
 
+    consignment_stock_line_id = fields.Many2one(
+        comodel_name='pharmacy.consignment.stock.line',
+        readonly=True,
+    )
+
     purchase_order_line_id = fields.Many2one(
         comodel_name='purchase.order.line',
         readonly=True,
@@ -120,12 +122,19 @@ class ConsignmentTrackWizardLine(models.TransientModel):
         comodel_name='product.product',
         readonly=True,
     )
+
+    lot_id = fields.Many2one(
+        comodel_name='stock.lot',
+        readonly=True,
+    )
+
+    expiry_date = fields.Date(readonly=True)
     
     received_qty = fields.Float(readonly=True)
     sold_qty = fields.Float(readonly=True)
-    already_paid_qty = fields.Float(readonly=True)
+    already_billed_qty = fields.Float(readonly=True)
     payable_now_qty = fields.Float(readonly=True)
-    payable_remaining_qty = fields.Float(readonly=True)
+    remaining_qty = fields.Float(readonly=True)
 
     status = fields.Selection(
         [

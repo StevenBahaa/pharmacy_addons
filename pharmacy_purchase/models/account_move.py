@@ -21,7 +21,26 @@ class AccountMove(models.Model):
                         line.product_id.product_tmpl_id.write({
                             'x_last_purchase_discount': line.discount
                         })
+            
+            # Update billed_qty on consignment stock lines
+            if move.is_consignment_bill and move.state == 'posted':
+                payments = self.env['pharmacy.consignment.payment'].search([('vendor_bill_id', '=', move.id)])
+                for payment in payments:
+                    if payment.consignment_stock_line_id:
+                        payment.consignment_stock_line_id.billed_qty += payment.billed_qty
         return res
+
+    def button_draft(self):
+        # If moving back to draft, we should ideally reduce billed_qty, 
+        # but Odoo 18 might have different flows. For now, let's just handle posting.
+        # Actually, let's handle it for consistency.
+        for move in self:
+            if move.is_consignment_bill and move.state == 'posted':
+                payments = self.env['pharmacy.consignment.payment'].search([('vendor_bill_id', '=', move.id)])
+                for payment in payments:
+                    if payment.consignment_stock_line_id:
+                        payment.consignment_stock_line_id.billed_qty -= payment.billed_qty
+        return super().button_draft()
 
 class AccountMoveLine(models.Model):
     _inherit = "account.move.line"
@@ -33,11 +52,12 @@ class AccountMoveLine(models.Model):
     )
 
     def write(self, vals):
-        if 'quantity' in vals:
+        protected_fields = ['quantity', 'price_unit', 'discount', 'product_id', 'account_id', 'partner_id']
+        if any(f in vals for f in protected_fields):
             for line in self:
                 if line.is_consignment_payment_line and line.move_id.is_consignment_bill and line.move_id.state != 'cancel':
                     raise UserError(
-                        "You cannot change the quantity of a consignment bill line."
+                        "You cannot change critical fields (quantity, price, discount, product, account, vendor) of a consignment bill line."
                     )
         return super().write(vals)
 
@@ -45,4 +65,4 @@ class AccountMoveLine(models.Model):
     def _unlink_except_consignment_payment(self):
         for line in self:
             if line.is_consignment_payment_line and line.move_id.is_consignment_bill and line.move_id.state != 'cancel':
-                raise UserError("You cannot delete a consignment payment line.")
+                raise UserError("You cannot delete a consignment payment line from a consignment bill.")

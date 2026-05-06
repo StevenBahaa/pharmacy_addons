@@ -16,11 +16,13 @@
                             <field name="line_ids" nolabel="1">
                                 <list create="0" edit="0" delete="0">
                                     <field name="product_id" string="Product" />
+                                    <field name="lot_id" string="Lot/Batch" />
+                                    <field name="expiry_date" string="Expiry" />
                                     <field name="received_qty" string="Received" sum="Total Received" />
                                     <field name="sold_qty" string="Sold" sum="Total Sold" />
-                                    <field name="already_paid_qty" string="Already Paid" sum="Total Paid" />
+                                    <field name="already_billed_qty" string="Billed" sum="Total Billed" />
                                     <field name="payable_now_qty" string="Payable Now" sum="Total Payable" />
-                                    <field name="payable_remaining_qty" string="Remaining" sum="Total Remaining" />
+                                    <field name="remaining_qty" string="Remaining" sum="Total Remaining" />
                                     <field name="status"
                                         widget="badge"
                                         decoration-success="status == 'paid'"

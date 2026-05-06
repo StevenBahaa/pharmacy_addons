@@ -51,43 +51,19 @@ class PurchaseOrderLine(models.Model):
 
     def _get_consignment_sold_qty_sales_only(self):
         self.ensure_one()
-        start_date = self._get_consignment_receipt_start_date()
-
-        if not start_date:
-            return 0.0
-
-        # MAXIMUM ACCURACY: Search Physical Stock Moves where the owner is the Vendor
-        # This covers Sale Orders, POS, and Deliveries accurately.
-        moves = self.env['stock.move'].search([
-            ('product_id', '=', self.product_id.id),
-            ('state', '=', 'done'),
-            ('picking_id.picking_type_id.code', '=', 'outgoing'),
-            ('date', '>=', start_date),
+        # Use the tracking lines to get accurate sold quantity for this PO line
+        cons_lines = self.env['pharmacy.consignment.stock.line'].search([
+            ('purchase_order_line_id', '=', self.id)
         ])
+        return sum(cons_lines.mapped('sold_qty'))
 
-        # Aggregate quantities from move lines where the owner is our vendor
-        vendor_owner = self.order_id.partner_id
-        sold_qty = 0.0
-        
-        for move in moves:
-            matching_lines = move.move_line_ids.filtered(lambda l: l.owner_id == vendor_owner)
-            for ml in matching_lines:
-                sold_qty += ml.product_uom_id._compute_quantity(ml.quantity, self.product_uom)
-
-        return sold_qty
-
-
-
-
-    def _get_consignment_already_paid_qty(self):
+    def _get_consignment_already_billed_qty(self):
         self.ensure_one()
-
-        payments = self.env["pharmacy.consignment.payment"].search([
-            ('purchase_order_line_id', '=', self.id),
-            ("vendor_bill_id.state", "!=", "cancel"),
+        # Use the tracking lines to get accurate billed quantity for this PO line
+        cons_lines = self.env['pharmacy.consignment.stock.line'].search([
+            ('purchase_order_line_id', '=', self.id)
         ])
-
-        return sum(payments.mapped('quantity_paid'))
+        return sum(cons_lines.mapped('billed_qty'))
 
     # -------------------------------------------------------------------------
     # ONCHANGE: FORCE PACKAGE UOM

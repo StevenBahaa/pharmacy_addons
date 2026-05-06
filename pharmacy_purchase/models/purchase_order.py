@@ -37,31 +37,39 @@ class PurchaseOrder(models.Model):
             'line_ids': [],
         }
 
-        for line in self.order_line:
-            if not line.product_id or line.product_id.type != 'consu':
-                continue
-                
-            sold_qty = line._get_consignment_sold_qty_sales_only()
-            already_paid_qty = line._get_consignment_already_paid_qty()
-            payable_now_qty = max(sold_qty - already_paid_qty, 0.0)
-            payable_remaining_qty = max(line.qty_received - sold_qty, 0.0)
+        # Find all tracking lines for this PO
+        cons_lines = self.env['pharmacy.consignment.stock.line'].search([
+            ('purchase_order_id', '=', self.id)
+        ])
+
+        for line in cons_lines:
+            # Find all payments (posted or draft) for this tracking line
+            payments = self.env['pharmacy.consignment.payment'].search([
+                ('consignment_stock_line_id', '=', line.id),
+                ('vendor_bill_id.state', '!=', 'cancel')
+            ])
+            already_processed_qty = sum(payments.mapped('billed_qty'))
             
+            payable_now_qty = max(line.sold_qty - already_processed_qty, 0.0)
             
             status = 'pending'
-            if sold_qty > 0:
-                if already_paid_qty >= sold_qty:
+            if line.sold_qty > 0:
+                if line.billed_qty >= line.sold_qty:
                     status = 'paid'
-                elif already_paid_qty > 0:
+                elif line.billed_qty > 0 or already_processed_qty > 0:
                     status = 'partial'
 
             wizard_vals['line_ids'].append((0, 0, { 
-                "purchase_order_line_id": line.id,  
+                "consignment_stock_line_id": line.id,
+                "purchase_order_line_id": line.purchase_order_line_id.id,  
                 "product_id": line.product_id.id,  
-                "received_qty": line.qty_received,  
-                "sold_qty": sold_qty,  
-                "already_paid_qty": already_paid_qty,  
+                "lot_id": line.lot_id.id,
+                "expiry_date": line.expiry_date,
+                "received_qty": line.received_qty,  
+                "sold_qty": line.sold_qty,  
+                "already_billed_qty": line.billed_qty,  
                 "payable_now_qty": payable_now_qty,  
-                "payable_remaining_qty": payable_remaining_qty,
+                "remaining_qty": line.remaining_qty,
                 "status": status,
             }))
 

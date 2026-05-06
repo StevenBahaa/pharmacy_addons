@@ -6,7 +6,7 @@
     'author': 'Steven Bahaa',
     'category': 'Healthcare',
     'license': 'LGPL-3',
-    'depends': ['base', 'product', 'stock'],
+    'depends': ['base', 'product', 'stock', 'purchase'],
     'data': [
         'security/security.xml',
         'security/ir.model.access.csv',
