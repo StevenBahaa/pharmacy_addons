@@ -32,10 +32,20 @@ class StockPicking(models.Model):
                     move.move_line_ids.write({'owner_id': picking.owner_id.id})
         
         res = super(StockPicking, self).button_validate()
+        
+        # Post-validation processing
         for picking in self:
-            if picking.state == 'done' and picking.picking_type_id.code == 'outgoing' and picking.purchase_id and picking.purchase_id.is_consignment:
-                picking.purchase_id.message_post(
-                    body=_("Return transfer %s validated — Remaining Quantity updated") % picking.name
-                )
+            if picking.state == 'done' and picking.purchase_id and picking.purchase_id.is_consignment:
+                # Handle Receipts
+                if picking.picking_type_id.code == 'incoming':
+                    for ml in picking.move_line_ids:
+                        if ml.state == 'done':
+                            ml._create_or_update_consignment_stock_line()
+                
+                # Handle Returns
+                elif picking.picking_type_id.code == 'outgoing' and picking.location_dest_id.usage == 'supplier':
+                    picking.purchase_id.message_post(
+                        body=_("Return transfer %s validated — Remaining Quantity updated") % picking.name
+                    )
         return res
 

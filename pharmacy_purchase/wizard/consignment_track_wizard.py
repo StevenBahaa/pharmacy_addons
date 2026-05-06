@@ -129,6 +129,15 @@ class ConsignmentTrackWizardLine(models.TransientModel):
     )
 
     expiry_date = fields.Date(readonly=True)
+    expiry_display = fields.Char(string='Expiry', compute='_compute_expiry_display')
+
+    @api.depends('expiry_date')
+    def _compute_expiry_display(self):
+        for line in self:
+            if line.expiry_date:
+                line.expiry_display = line.expiry_date.strftime('%m/%Y')
+            else:
+                line.expiry_display = ''
     
     received_qty = fields.Float(readonly=True)
     sold_qty = fields.Float(readonly=True)

@@ -28,9 +28,46 @@ class PurchaseOrder(models.Model):
                     order.message_post(body=f"Consignment status removed by {self.env.user.name}")
         return super().write(vals)
 
+    def action_sync_consignment_stock_lines(self):
+        """
+        Manually sync tracking lines from all done pickings (Receipts & Sales).
+        Useful for repairing data from existing test runs.
+        """
+        for order in self:
+            if not order.is_consignment:
+                continue
+            
+            # 1. Sync Receipts (Creates/Updates Tracking Lines)
+            pickings = order.picking_ids.filtered(lambda p: p.state == 'done' and p.picking_type_id.code == 'incoming')
+            for ml in pickings.move_line_ids:
+                if ml.state == 'done':
+                    ml.x_is_consignment_processed = False # Force re-process
+                    ml._create_or_update_consignment_stock_line()
+            
+            # 2. Sync Sales (Updates Sold Qty for the Lots in this PO)
+            tracking_lines = self.env['pharmacy.consignment.stock.line'].search([
+                ('purchase_order_id', '=', order.id)
+            ])
+            for line in tracking_lines:
+                # Reset sold qty for re-calculation
+                line.sold_qty = 0.0
+                # Find all outgoing moves for this specific Lot
+                outgoing_mls = self.env['stock.move.line'].search([
+                    ('product_id', '=', line.product_id.id),
+                    ('lot_id', '=', line.lot_id.id),
+                    ('state', '=', 'done'),
+                    ('picking_id.picking_type_id.code', '=', 'outgoing'),
+                ])
+                for ml in outgoing_mls:
+                    ml.x_is_consignment_processed = False # Force re-process
+                    ml._update_consignment_sale_qty()
+        return True
+
 
     def action_open_consignment_tracking(self):
         self.ensure_one()
+        # Automatically sync data before opening the wizard to ensure accuracy
+        self.action_sync_consignment_stock_lines()
         
         wizard_vals = {
             'purchase_order_id': self.id,
