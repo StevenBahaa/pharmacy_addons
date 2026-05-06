@@ -101,28 +101,37 @@ class PharmacyShortageLine(models.Model):
             onhand_qty = self._get_onhand_qty(op.product_id, op.location_id)
             reserved_qty = self._get_reserved_qty(op.product_id, op.location_id)
             available_qty = onhand_qty - reserved_qty
-
-            vals = {
-                "product_id": op.product_id.id,
-                "location_id": op.location_id.id,
-                "warehouse_id": op.warehouse_id.id,
-                "min_qty": op.product_min_qty,
-                "max_qty": op.product_max_qty,
-                "onhand_qty": onhand_qty,
-                "reserved_qty": reserved_qty,
-                "available_qty": available_qty,
-            }
+            shortage_qty = op.product_min_qty - available_qty
 
             existing = Shortage.search([
-                ("product_id", "=", op.product_id.id),
-                ("location_id", "=", op.location_id.id),
-                ("warehouse_id", "=", op.warehouse_id.id)
-            ], limit=1)
+                    ("product_id", "=", op.product_id.id),
+                    ("location_id", "=", op.location_id.id),
+                    ("warehouse_id", "=", op.warehouse_id.id)
+                ], limit=1)
 
-            if existing:
-                existing.write(vals)
+            if available_qty < op.product_min_qty:
+                vals = {
+                    "product_id": op.product_id.id,
+                    "location_id": op.location_id.id,
+                    "warehouse_id": op.warehouse_id.id,
+                    "min_qty": op.product_min_qty,
+                    "max_qty": op.product_max_qty,
+                    "onhand_qty": onhand_qty,
+                    "reserved_qty": reserved_qty,
+                    "available_qty": available_qty,
+                    "shortage_qty": shortage_qty,
+                }
+
+                
+
+                if existing:
+                    existing.write(vals)
+                else:
+                    Shortage.create(vals)
+        
             else:
-                Shortage.create(vals)
+                if existing:
+                    existing.unlink()
 
 
 
