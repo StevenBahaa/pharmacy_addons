@@ -1,0 +1,13 @@
+<?xml version="1.0" encoding="utf-8"?>
+<odoo>
+    <record id="action_report_shortage_xlsx" model="ir.actions.report">
+        <field name="name">Pharmacy Shortage Excel</field>
+        <field name="model">pharmacy.shortage.line</field>
+        <field name="report_type">xlsx</field>
+        <field name="report_name">pharmacy_reports.shortage_report_xlsx</field>
+        <field name="report_file">pharmacy_shortage</field>
+        <field name="print_report_name">'pharmacy_shortage'</field>
+        <field name="binding_model_id" ref="pharmacy_inventory_ops.model_pharmacy_shortage_line" />
+        <field name="binding_type">report</field>
+    </record>
+</odoo>

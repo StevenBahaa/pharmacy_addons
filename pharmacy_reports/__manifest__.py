@@ -1,24 +1,19 @@
-# -*- coding: utf-8 -*-
 {
-    'name': 'Pharmacy Reports',
+    'name': 'Pharmacy Reports & Exports',
     'version': '18.0.1.0.0',
-    'summary': 'Pharmacy QWeb reports and XLSX exports',
-    'author': 'Steven Bahaa',
-    'category': 'Healthcare',
+    'category': 'Pharmacy/Reports',
+    'summary': 'Unified reporting and Excel export system for Pharmacy Management.',
+    'author': 'Senior ERP Developer',
     'license': 'LGPL-3',
     'depends': [
-        'pharmacy_base',
-        'pharmacy_stock_expiry',
-        'pharmacy_sales_rules',
         'pharmacy_inventory_ops',
+        'report_xlsx',
+        'pharmacy_base'
     ],
     'data': [
-        'security/ir.model.access.csv',
-        'wizard/expired_medicines_report_wizard_view.xml',
-        'wizard/expired_export_wizard_view.xml',
-        'views/expired_medicines_report_actions.xml',
-        'report/expired_medicines_report_template.xml',
+        'report/pharmacy_shortage_report.xml',
+        'views/pharmacy_shortage_report_views.xml',
     ],
     'installable': True,
-    'application': False,
+    'auto_install': False,
 }

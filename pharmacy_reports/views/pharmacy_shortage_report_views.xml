@@ -1,0 +1,19 @@
+<?xml version="1.0" encoding="utf-8"?>
+<odoo>
+    <record id="pharmacy_shortage_line_view_list_inherit_reports" model="ir.ui.view">
+        <field name="name">pharmacy.shortage.line.list.inherit.reports</field>
+        <field name="model">pharmacy.shortage.line</field>
+        <field name="inherit_id" ref="pharmacy_inventory_ops.pharmacy_shortage_line_view_list" />
+        <field name="arch" type="xml">
+            <xpath expr="//header" position="inside">
+                <button name="%(pharmacy_reports.action_report_shortage_xlsx)d"
+                    string="Export to Excel"
+                    type="action"
+                    class="btn-secondary"
+                    icon="fa-file-excel-o"
+                    groups="pharmacy_base.group_pharmacy_manager,pharmacy_base.group_purchase_manager"
+                    help="Export currently filtered shortages to a professional Excel file." />
+            </xpath>
+        </field>
+    </record>
+</odoo>

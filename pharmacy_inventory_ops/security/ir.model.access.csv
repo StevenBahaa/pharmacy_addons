@@ -1,3 +1,4 @@
 id,name,model_id:id,group_id:id,perm_read,perm_write,perm_create,perm_unlink
-access_pharmacy_shortage_line_user,pharmacy.shortage.line user,model_pharmacy_shortage_line,base.group_user,1,0,0,0
-access_pharmacy_shortage_line_manager,pharmacy.shortage.line manager,model_pharmacy_shortage_line,stock.group_stock_manager,1,1,1,1
+access_pharmacy_shortage_line_pharmacist,pharmacy.shortage.line pharmacist,model_pharmacy_shortage_line,pharmacy_base.group_pharmacist,1,0,0,0
+access_pharmacy_shortage_line_purchase_manager,pharmacy.shortage.line purchase manager,model_pharmacy_shortage_line,pharmacy_base.group_purchase_manager,1,1,1,1
+access_pharmacy_shortage_line_pharmacy_manager,pharmacy.shortage.line pharmacy manager,model_pharmacy_shortage_line,pharmacy_base.group_pharmacy_manager,1,1,1,1
