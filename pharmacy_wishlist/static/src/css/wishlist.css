@@ -1,0 +1,14 @@
+.wishlist-form .form-label {
+    color: #4c4c4c;
+    font-size: 0.9rem;
+}
+
+.wishlist-form .form-control:focus, 
+.wishlist-form .form-select:focus {
+    border-color: #00A09D;
+    box-shadow: 0 0 0 0.2rem rgba(0, 160, 157, 0.25);
+}
+
+.control-button.btn-light i.fa-star {
+    color: #FFD700;
+}
