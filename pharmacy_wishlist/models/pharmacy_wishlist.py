@@ -24,27 +24,28 @@ class PharmacyWishlist(models.Model):
         ('called', 'Called'),
     ], string='Status', default='not_called', tracking=True)
 
-    @api.model
-    def create(self, vals):
-        phone = vals.get('customer_phone')
-        name = vals.get('customer_name')
-        if phone:
-            partner = self.env['res.partner'].search([
-                '|', ('phone', '=', phone), ('mobile', '=', phone)
-            ], limit=1)
-            
-            if not partner:
-                partner = self.env['res.partner'].create({
-                    'name': name or f'New Customer ({phone})',
-                    'phone': phone,
-                    'mobile': phone,
-                })
-            
-            vals['partner_id'] = partner.id
-            if not vals.get('customer_name'):
-                vals['customer_name'] = partner.name
+    @api.model_create_multi
+    def create(self, vals_list):
+        for vals in vals_list:
+            phone = vals.get('customer_phone')
+            name = vals.get('customer_name')
+            if phone:
+                partner = self.env['res.partner'].search([
+                    '|', ('phone', '=', phone), ('mobile', '=', phone)
+                ], limit=1)
+                
+                if not partner:
+                    partner = self.env['res.partner'].create({
+                        'name': name or f'New Customer ({phone})',
+                        'phone': phone,
+                        'mobile': phone,
+                    })
+                
+                vals['partner_id'] = partner.id
+                if not vals.get('customer_name'):
+                    vals['customer_name'] = partner.name
         
-        return super(PharmacyWishlist, self).create(vals)
+        return super(PharmacyWishlist, self).create(vals_list)
 
     def action_set_no_answer(self):
         self.write({'state': 'no_answer'})
