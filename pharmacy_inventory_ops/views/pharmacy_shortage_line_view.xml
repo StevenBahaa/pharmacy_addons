@@ -4,33 +4,70 @@
         <field name="name">pharmacy.shortage.line.view.list</field>
         <field name="model">pharmacy.shortage.line</field>
         <field name="arch" type="xml">
-            <list string="Pharmacy Shortage Lines" create="0" edit="0" delete="0">
+            <list string="Shortage Dashboard" 
+                  create="0" edit="0" delete="0"
+                  decoration-danger="urgency_level == 'critical'"
+                  decoration-warning="urgency_level == 'warning'"
+                  decoration-muted="incoming_qty > 0">
                 <header>
                     <button name="action_refresh_shortage_lines"
-                        string="Refresh Shortage List"
+                        string="Update Dashboard"
                         type="object"
                         class="btn-primary"
-                        display="always" />
+                        icon="fa-refresh" />
                 </header>
+                <field name="urgency_level" 
+                       widget="badge" 
+                       decoration-danger="urgency_level == 'critical'"
+                       decoration-warning="urgency_level == 'warning'"
+                       decoration-info="urgency_level == 'normal'" />
                 <field name="product_id" />
-                <field name="location_id" />
-                <field name="warehouse_id" />
-                <field name="onhand_qty" />
-                <field name="reserved_qty" />
-                <field name="available_qty" />
-                <field name="min_qty" />
-                <field name="max_qty" />
-                <field name="incoming_qty" />
-                <field name="shortage_qty" />
+                <field name="available_qty" decoration-bf="1" />    
+                <field name="min_qty" decoration-muted="1" />
+                <field name="incoming_qty" decoration-info="incoming_qty > 0" />
+                <field name="shortage_qty" decoration-danger="urgency_level == 'critical'" />
+                <field name="location_id" groups="stock.group_stock_multi_locations" optional="show" />
+                <field name="warehouse_id" groups="stock.group_stock_multi_warehouses" optional="hide" />
+                <button name="action_create_rfq"
+                    string="Order Now"
+                    type="object"
+                    icon="fa-shopping-cart"
+                    class="btn-primary"
+                    invisible="incoming_qty > 0" />
+                <button name="action_create_rfq"
+                    string="Order More"
+                    type="object"
+                    icon="fa-plus"
+                    class="btn-secondary"
+                    invisible="incoming_qty == 0" />
             </list>
         </field>
     </record>
 
+    <record id="pharmacy_shortage_line_view_search" model="ir.ui.view">
+        <field name="name">pharmacy.shortage.line.search</field>
+        <field name="model">pharmacy.shortage.line</field>
+        <field name="arch" type="xml">
+            <search>
+                <field name="product_id" />
+                <filter name="critical" string="Critical" domain="[('urgency_level', '=', 'critical')]" />
+                <filter name="warning" string="Warning" domain="[('urgency_level', '=', 'warning')]" />
+                <separator/>
+                <filter name="on_way" string="Already on Way" domain="[('incoming_qty', '>', 0)]" />
+                <group expand="0" string="Group By">
+                    <filter string="Warehouse" name="grp_warehouse" context="{'group_by': 'warehouse_id'}"/>
+                    <filter string="Location" name="grp_location" context="{'group_by': 'location_id'}"/>
+                </group>
+            </search>
+        </field>
+    </record>
+
     <record id="action_pharmacy_shortage_line" model="ir.actions.act_window">
-        <field name="name">Pharmacy Shortage Lines</field>
+        <field name="name">Shortage Dashboard</field>
         <field name="res_model">pharmacy.shortage.line</field>
         <field name="view_mode">list,form</field>
-        <field name="view_id" ref="pharmacy_shortage_line_view_list" />
+        <field name="search_view_id" ref="pharmacy_shortage_line_view_search" />
+        <field name="context">{'search_default_critical': 1}</field>
     </record>
 
     <menuitem id="menu_pharmacy_shortage_root"
@@ -39,7 +76,7 @@
         sequence="80" />
 
     <menuitem id="menu_pharmacy_shortage_line"
-        name="Shortage List"
+        name="Shortage Dashboard"
         parent="menu_pharmacy_shortage_root"
         action="action_pharmacy_shortage_line"
         sequence="10" />

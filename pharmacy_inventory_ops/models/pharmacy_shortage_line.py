@@ -58,6 +58,22 @@ class PharmacyShortageLine(models.Model):
         readonly=True
     )
 
+    urgency_level = fields.Selection([
+        ('critical', 'Critical (Out of Stock)'),
+        ('warning', 'Warning (Low Stock)'),
+        ('normal', 'Normal'),
+    ], string='Urgency', compute='_compute_urgency_level', store=True)
+
+    @api.depends('available_qty', 'min_qty')
+    def _compute_urgency_level(self):
+        for line in self:
+            if line.available_qty <= 0:
+                line.urgency_level = 'critical'
+            elif line.available_qty < (line.min_qty * 0.5):
+                line.urgency_level = 'warning'
+            else:
+                line.urgency_level = 'normal'
+
     _sql_constraints = [
         ("unique_product_location_warehouse",
          "unique(product_id, location_id, warehouse_id)",
@@ -151,6 +167,31 @@ class PharmacyShortageLine(models.Model):
         return {
             "type": "ir.actions.client",
             "tag": "reload",
+        }
+
+    def action_create_rfq(self):
+        self.ensure_one()
+
+        qty = self.shortage_qty
+
+        return {
+            "type": "ir.actions.act_window",
+            "name": "Create RFQ",
+            "res_model": "purchase.order",
+            "view_mode": "form",
+            "target": "current",
+            "context": {
+                "default_partner_id": self.product_id.seller_ids[:1].partner_id.id,
+                "default_order_line": [
+                    (0, 0, {
+                        "product_id": self.product_id.id,
+                        "product_qty": qty,
+                        "product_uom": self.product_id.uom_po_id.id or self.product_id.uom_id.id,
+                        "name": self.product_id.display_name,
+                        "date_planned": fields.Datetime.now(),
+                    })
+                ]
+            },
         }
 
 
