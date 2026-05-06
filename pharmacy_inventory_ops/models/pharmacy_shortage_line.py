@@ -91,6 +91,22 @@ class PharmacyShortageLine(models.Model):
 
         return groups[0]["reserved_quantity"] if groups else 0.0
 
+    def _get_incoming_qty(self, product, location):
+        Move = self.env["stock.move"]
+
+        groups = Move.read_group(
+            [
+                ("product_id", "=", product.id),
+                ("location_dest_id", "child_of", location.id),
+                ("purchase_line_id", "!=", False),
+                ("state", "not in", ["done", "cancel"]),
+            ],
+            ["product_uom_qty:sum"],
+            []
+        )
+
+        return groups[0]["product_uom_qty"] if groups else 0.0
+
     def action_refresh_shortage_lines(self):
         Orderpoint = self.env["stock.warehouse.orderpoint"]
         Shortage = self.env["pharmacy.shortage.line"]
@@ -102,6 +118,7 @@ class PharmacyShortageLine(models.Model):
             reserved_qty = self._get_reserved_qty(op.product_id, op.location_id)
             available_qty = onhand_qty - reserved_qty
             shortage_qty = op.product_min_qty - available_qty
+            incoming_qty = self._get_incoming_qty(op.product_id, op.location_id)
 
             existing = Shortage.search([
                     ("product_id", "=", op.product_id.id),
@@ -120,6 +137,7 @@ class PharmacyShortageLine(models.Model):
                     "reserved_qty": reserved_qty,
                     "available_qty": available_qty,
                     "shortage_qty": shortage_qty,
+                    "incoming_qty": incoming_qty
                 }
 
                 
