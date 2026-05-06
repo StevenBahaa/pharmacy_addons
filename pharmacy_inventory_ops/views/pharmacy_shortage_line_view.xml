@@ -14,7 +14,8 @@
                         string="Update Dashboard"
                         type="object"
                         class="btn-primary"
-                        icon="fa-refresh" />
+                        icon="fa-refresh"
+                        display="always" />
                 </header>
                 <field name="urgency_level"
                     widget="badge"
@@ -34,13 +35,15 @@
                     type="object"
                     icon="fa-shopping-cart"
                     class="btn-primary"
-                    invisible="incoming_qty > 0" />
+                    invisible="incoming_qty > 0"
+                    groups="pharmacy_base.group_purchase_manager,pharmacy_base.group_pharmacy_manager" />
                 <button name="action_create_rfq"
                     string="Order More"
                     type="object"
                     icon="fa-plus"
                     class="btn-secondary"
-                    invisible="incoming_qty == 0" />
+                    invisible="incoming_qty == 0"
+                    groups="pharmacy_base.group_purchase_manager,pharmacy_base.group_pharmacy_manager" />
             </list>
         </field>
     </record>
@@ -71,6 +74,8 @@
         <field name="model_id" ref="model_pharmacy_shortage_line" />
         <field name="binding_model_id" ref="model_pharmacy_shortage_line" />
         <field name="binding_view_types">list</field>
+        <field name="groups_id"
+            eval="[(4, ref('pharmacy_base.group_purchase_manager')), (4, ref('pharmacy_base.group_pharmacy_manager'))]" />
         <field name="state">code</field>
         <field name="code">action = records.action_create_rfq_from_selected()</field>
     </record>
