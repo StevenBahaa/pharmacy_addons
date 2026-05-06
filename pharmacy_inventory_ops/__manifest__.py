@@ -8,7 +8,9 @@
     'license': 'LGPL-3',
     'depends': ['pharmacy_base', 'stock', 'purchase', 'stock_account'],
     'data': [
+        'security/ir.model.access.csv',
         'data/product_category_data.xml',
+        'views/pharmacy_shortage_line_view.xml',
     ],
     'post_init_hook': '_post_init_force_avco',
     'installable': True,

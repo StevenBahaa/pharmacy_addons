@@ -139,9 +139,6 @@ class PharmacyShortageLine(models.Model):
                     "shortage_qty": shortage_qty,
                     "incoming_qty": incoming_qty
                 }
-
-                
-
                 if existing:
                     existing.write(vals)
                 else:
@@ -150,7 +147,11 @@ class PharmacyShortageLine(models.Model):
             else:
                 if existing:
                     existing.unlink()
-
+        
+        return {
+            "type": "ir.actions.client",
+            "tag": "reload",
+        }
 
 
     
