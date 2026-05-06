@@ -10,6 +10,7 @@ class PharmacyWishlist(models.Model):
     product_id = fields.Many2one('product.product', string='Product', required=True, tracking=True)
     quantity = fields.Float(string='Quantity', default=1.0, tracking=True)
     partner_id = fields.Many2one('res.partner', string='Customer', tracking=True)
+    customer_name = fields.Char(string='Customer Name', tracking=True)
     customer_phone = fields.Char(string='Customer Phone', required=True, tracking=True)
     customer_unique_code = fields.Char(related='partner_id.ref', string='Customer Code', readonly=True)
     shop_name = fields.Char(string='Shop/POS Name', readonly=True)
@@ -26,6 +27,7 @@ class PharmacyWishlist(models.Model):
     @api.model
     def create(self, vals):
         phone = vals.get('customer_phone')
+        name = vals.get('customer_name')
         if phone:
             partner = self.env['res.partner'].search([
                 '|', ('phone', '=', phone), ('mobile', '=', phone)
@@ -33,12 +35,14 @@ class PharmacyWishlist(models.Model):
             
             if not partner:
                 partner = self.env['res.partner'].create({
-                    'name': f'New Customer ({phone})',
+                    'name': name or f'New Customer ({phone})',
                     'phone': phone,
                     'mobile': phone,
                 })
             
             vals['partner_id'] = partner.id
+            if not vals.get('customer_name'):
+                vals['customer_name'] = partner.name
         
         return super(PharmacyWishlist, self).create(vals)
 

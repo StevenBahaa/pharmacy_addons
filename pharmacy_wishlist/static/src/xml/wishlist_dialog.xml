@@ -1,28 +1,69 @@
 <?xml version="1.0" encoding="utf-8"?>
 <templates id="template" xml:space="preserve">
     <t t-name="pharmacy_wishlist.WishlistDialog">
-        <Dialog title="props.title" size="'md'">
+        <Dialog title="props.title" size="'lg'">
             <div class="wishlist-form p-3">
-                <div class="mb-3">
-                    <label class="form-label fw-bold">Customer Phone</label>
-                    <input type="text" class="form-control" t-model="state.customer_phone" placeholder="Enter phone number..."/>
+                <!-- Customer Header -->
+                <div class="row mb-4 bg-light p-3 rounded">
+                    <div class="col-md-4">
+                        <label class="form-label fw-bold">Customer Name</label>
+                        <input type="text" class="form-control" t-model="state.customer_name" placeholder="Name..."/>
+                    </div>
+                    <div class="col-md-4">
+                        <label class="form-label fw-bold">Customer Phone</label>
+                        <input type="text" class="form-control" t-model="state.customer_phone" placeholder="Phone..."/>
+                    </div>
+                    <div class="col-md-4">
+                        <label class="form-label fw-bold">Customer Code</label>
+                        <input type="text" class="form-control bg-white" t-att-value="props.customer_code" readonly="1" placeholder="Auto-generated..."/>
+                    </div>
                 </div>
-                <div class="mb-3">
-                    <label class="form-label fw-bold">Product</label>
-                    <select class="form-select" t-model="state.product_id">
-                        <option value="">Select a product...</option>
-                        <t t-foreach="products" t-as="product" t-key="product.id">
-                            <option t-att-value="product.id"><t t-esc="product.display_name"/></option>
-                        </t>
-                    </select>
-                </div>
-                <div class="mb-3">
-                    <label class="form-label fw-bold">Quantity</label>
-                    <input type="number" class="form-control" t-model="state.quantity" step="1" min="1"/>
-                </div>
-                <div class="mb-3">
-                    <label class="form-label fw-bold">Notes</label>
-                    <textarea class="form-control" t-model="state.note" rows="3" placeholder="Specific dosage or brand requests..."></textarea>
+
+                <!-- Product Lines -->
+                <div class="wishlist-lines">
+                    <label class="form-label fw-bold d-flex justify-content-between align-items-center">
+                        Products Requested
+                        <button class="btn btn-outline-primary btn-sm" t-on-click="addLine">
+                            <i class="fa fa-plus me-1"/> Add Product
+                        </button>
+                    </label>
+                    <div class="table-responsive">
+                        <table class="table table-sm">
+                            <thead>
+                                <tr>
+                                    <th style="width: 45%">Product</th>
+                                    <th style="width: 15%">Qty</th>
+                                    <th style="width: 35%">Note</th>
+                                    <th style="width: 5%"></th>
+                                </tr>
+                            </thead>
+                            <tbody>
+                                <t t-foreach="state.lines" t-as="line" t-key="line_index">
+                                    <tr>
+                                        <td>
+                                            <select class="form-select form-select-sm" t-model="line.product_id">
+                                                <option value="">Select product...</option>
+                                                <t t-foreach="products" t-as="product" t-key="product.id">
+                                                    <option t-att-value="product.id"><t t-esc="product.display_name"/></option>
+                                                </t>
+                                            </select>
+                                        </td>
+                                        <td>
+                                            <input type="number" class="form-control form-control-sm" t-model="line.quantity" step="1" min="1"/>
+                                        </td>
+                                        <td>
+                                            <input type="text" class="form-control form-control-sm" t-model="line.note" placeholder="Optional note..."/>
+                                        </td>
+                                        <td>
+                                            <button class="btn btn-link text-danger p-0" t-on-click="() => this.removeLine(line_index)">
+                                                <i class="fa fa-times"/>
+                                            </button>
+                                        </td>
+                                    </tr>
+                                </t>
+                            </tbody>
+                        </table>
+                    </div>
                 </div>
             </div>
             <t t-set-slot="footer">

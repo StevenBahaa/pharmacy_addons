@@ -9,7 +9,9 @@ export class WishlistDialog extends Component {
     static components = { Dialog };
     static props = {
         title: { type: String, optional: true },
+        customer_name: { type: String, optional: true },
         customer_phone: { type: String, optional: true },
+        customer_code: { type: String, optional: true },
         confirm: { type: Function },
         close: { type: Function },
     };
@@ -18,34 +20,59 @@ export class WishlistDialog extends Component {
         this.pos = useService("pos");
         this.notification = useService("notification");
         this.state = useState({
+            customer_name: this.props.customer_name || "",
             customer_phone: this.props.customer_phone || "",
-            product_id: "",
-            quantity: 1,
-            note: "",
+            lines: [this.createEmptyLine()],
         });
     }
 
+    createEmptyLine() {
+        return {
+            product_id: "",
+            quantity: 1,
+            note: "",
+        };
+    }
+
     get products() {
-        // Compatible with Odoo 18 POS model store
         return this.pos.models["product.product"].getAll().filter((p) => p.available_in_pos);
     }
 
+    addLine() {
+        this.state.lines.push(this.createEmptyLine());
+    }
+
+    removeLine(index) {
+        if (this.state.lines.length > 1) {
+            this.state.lines.splice(index, 1);
+        } else {
+            this.state.lines[0] = this.createEmptyLine();
+        }
+    }
+
     async onConfirm() {
+        if (!this.state.customer_name) {
+            this.notification.add("Customer name is required.", { type: "danger" });
+            return;
+        }
         if (!this.state.customer_phone) {
             this.notification.add("Customer phone is required.", { type: "danger" });
             return;
         }
-        if (!this.state.product_id) {
-            this.notification.add("Product is required.", { type: "danger" });
+
+        const validLines = this.state.lines.filter(l => l.product_id);
+        if (validLines.length === 0) {
+            this.notification.add("At least one product must be selected.", { type: "danger" });
             return;
         }
 
-        await this.props.confirm({
-            customer_phone: this.state.customer_phone,
-            product_id: parseInt(this.state.product_id),
-            quantity: parseFloat(this.state.quantity) || 1,
-            note: this.state.note,
-        });
+        await this.props.confirm(
+            {
+                customer_name: this.state.customer_name,
+                customer_phone: this.state.customer_phone,
+            },
+            validLines
+        );
         this.props.close();
     }
 
