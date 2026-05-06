@@ -4,11 +4,11 @@
         <field name="name">pharmacy.shortage.line.view.list</field>
         <field name="model">pharmacy.shortage.line</field>
         <field name="arch" type="xml">
-            <list string="Shortage Dashboard" 
-                  create="0" edit="0" delete="0"
-                  decoration-danger="urgency_level == 'critical'"
-                  decoration-warning="urgency_level == 'warning'"
-                  decoration-muted="incoming_qty > 0">
+            <list string="Shortage Dashboard"
+                create="0" edit="0" delete="0"
+                decoration-danger="urgency_level == 'critical'"
+                decoration-warning="urgency_level == 'warning'"
+                decoration-muted="incoming_qty > 0">
                 <header>
                     <button name="action_refresh_shortage_lines"
                         string="Update Dashboard"
@@ -16,18 +16,19 @@
                         class="btn-primary"
                         icon="fa-refresh" />
                 </header>
-                <field name="urgency_level" 
-                       widget="badge" 
-                       decoration-danger="urgency_level == 'critical'"
-                       decoration-warning="urgency_level == 'warning'"
-                       decoration-info="urgency_level == 'normal'" />
+                <field name="urgency_level"
+                    widget="badge"
+                    decoration-danger="urgency_level == 'critical'"
+                    decoration-warning="urgency_level == 'warning'"
+                    decoration-info="urgency_level == 'normal'" />
                 <field name="product_id" />
-                <field name="available_qty" decoration-bf="1" />    
+                <field name="available_qty" decoration-bf="1" />
                 <field name="min_qty" decoration-muted="1" />
                 <field name="incoming_qty" decoration-info="incoming_qty > 0" />
                 <field name="shortage_qty" decoration-danger="urgency_level == 'critical'" />
                 <field name="location_id" groups="stock.group_stock_multi_locations" optional="show" />
-                <field name="warehouse_id" groups="stock.group_stock_multi_warehouses" optional="hide" />
+                <field name="warehouse_id" groups="stock.group_stock_multi_warehouses"
+                    optional="hide" />
                 <button name="action_create_rfq"
                     string="Order Now"
                     type="object"
@@ -50,16 +51,28 @@
         <field name="arch" type="xml">
             <search>
                 <field name="product_id" />
-                <filter name="critical" string="Critical" domain="[('urgency_level', '=', 'critical')]" />
+                <filter name="critical" string="Critical"
+                    domain="[('urgency_level', '=', 'critical')]" />
                 <filter name="warning" string="Warning" domain="[('urgency_level', '=', 'warning')]" />
-                <separator/>
+                <separator />
                 <filter name="on_way" string="Already on Way" domain="[('incoming_qty', '>', 0)]" />
                 <group expand="0" string="Group By">
-                    <filter string="Warehouse" name="grp_warehouse" context="{'group_by': 'warehouse_id'}"/>
-                    <filter string="Location" name="grp_location" context="{'group_by': 'location_id'}"/>
+                    <filter string="Warehouse" name="grp_warehouse"
+                        context="{'group_by': 'warehouse_id'}" />
+                    <filter string="Location" name="grp_location"
+                        context="{'group_by': 'location_id'}" />
                 </group>
             </search>
         </field>
+    </record>
+
+    <record id="action_create_rfq_from_shortage_selected" model="ir.actions.server">
+        <field name="name">Create RFQ from Selected Shortages</field>
+        <field name="model_id" ref="model_pharmacy_shortage_line" />
+        <field name="binding_model_id" ref="model_pharmacy_shortage_line" />
+        <field name="binding_view_types">list</field>
+        <field name="state">code</field>
+        <field name="code">action = records.action_create_rfq_from_selected()</field>
     </record>
 
     <record id="action_pharmacy_shortage_line" model="ir.actions.act_window">

@@ -193,6 +193,33 @@ class PharmacyShortageLine(models.Model):
                 ]
             },
         }
+    
+    def action_create_rfq_from_selected(self):
+        order_lines = []
+
+        for line in self:
+            if line.shortage_qty <= 0:
+                continue
+
+            order_lines.append((0, 0, {
+                "product_id": line.product_id.id,
+                "product_qty": line.shortage_qty,
+                "product_uom": line.product_id.uom_po_id.id or line.product_id.uom_id.id,
+                "name": line.product_id.display_name,
+                "date_planned": fields.Datetime.now(),
+            }))
+
+        return {
+            "type": "ir.actions.act_window",
+            "name": "Create RFQ",
+            "res_model": "purchase.order",
+            "view_mode": "form",
+            "target": "current",
+            "context": {
+                "default_partner_id": self.product_id.seller_ids[:1].partner_id.id,
+                "default_order_line": order_lines,
+            },
+        }
 
 
     
