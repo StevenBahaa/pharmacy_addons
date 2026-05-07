@@ -20,10 +20,10 @@ class PharmacyWishlist(models.Model):
     company_id = fields.Many2one('res.company', string='Company', required=True, default=lambda self: self.env.company)
     note = fields.Text(string='Notes')
     state = fields.Selection([
-        ('not_called', 'Not Called'),
-        ('available_not_called', 'Available - Not Called'),
-        ('called_not_answered', 'Called - Not Answered'),
-        ('called', 'Called'),
+        ('not_called', 'Waiting for Stock'),
+        ('available', 'Ready to Call (Available)'),
+        ('called_not_answered', 'Called - No Answer'),
+        ('called', 'Fulfilled / Closed'),
     ], string='Status', default='not_called', tracking=True)
 
     @api.constrains('product_id', 'company_id')
@@ -82,7 +82,7 @@ class PharmacyWishlist(models.Model):
 
     def action_set_available(self, locations=None):
         self.write({
-            'state': 'available_not_called',
+            'state': 'available',
             'location_names': ', '.join(locations) if locations else False
         })
         self._create_followup_activity(_('Product is now available at: %s. Please call the customer.') % (self.location_names or 'Warehouse'))

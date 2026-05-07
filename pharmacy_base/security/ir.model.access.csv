@@ -2,3 +2,4 @@ id,name,model_id:id,group_id:id,perm_read,perm_write,perm_create,perm_unlink
 access_product_barcode_line,product.barcode.line,model_product_barcode_line,base.group_user,1,1,1,1
 access_product_related_product_manager,product.related.product.manager,model_product_related_product,pharmacy_base.group_pharmacy_manager,1,1,1,1
 access_product_related_product_pricing_manager,product.related.product.pricing.manager,model_product_related_product,pharmacy_base.group_pricing_manager,1,1,1,0
+access_product_related_product_all,product.related.product.all,model_product_related_product,base.group_user,1,0,0,0

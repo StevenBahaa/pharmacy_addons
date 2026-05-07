@@ -16,7 +16,7 @@ class StockMove(models.Model):
         product_ids = moves_to_check.mapped('product_id.id')
         wishlist_records = self.env['pharmacy.wishlist'].sudo().search([
             ('product_id', 'in', product_ids),
-            ('state', '=', 'not_called')
+            ('state', 'in', ['not_called', 'called_not_answered'])
         ])
         
         if not wishlist_records:

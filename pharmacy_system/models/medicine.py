@@ -633,7 +633,7 @@ class ProductTemplate(models.Model):
             ])
             args = expression.AND([args, domain])
 
-        return self._search(args, limit=limit, access_rights_uid=name_get_uid)
+        return self._search(args, limit=limit)
     
     qty_expired = fields.Float(
         string="Expired Qty",
@@ -727,6 +727,7 @@ class ProductProduct(models.Model):
             'x_pos_complementary_product_ids',
             'x_has_pos_related_products',
             'qty_expired',
+            'qty_available',
         ]
 
         for field in extra_fields:
@@ -750,7 +751,7 @@ class ProductProduct(models.Model):
             ])
             args = expression.AND([args, domain])
 
-        return self._search(args, limit=limit, access_rights_uid=name_get_uid)
+        return self._search(args, limit=limit)
     
     @api.depends(
         'product_tmpl_id.similar_product_ids',
@@ -792,11 +793,8 @@ class ProductProduct(models.Model):
             ])
             product.qty_expired = sum(quants.mapped('quantity'))
     def _pos_domain(self):
-        domain = super()._pos_domain() if hasattr(super(), "_pos_domain") else []
-        # Exclude products with only expired stock
-        return domain + [
-            ('qty_available', '>', 0),
-        ]
+        """Allow out-of-stock products to load so they can be added to the Wishlist."""
+        return super()._pos_domain() if hasattr(super(), "_pos_domain") else []
     def _get_non_expired_qty(self):
         self.env.cr.execute("""
             SELECT product_id, SUM(quantity) as qty
@@ -807,16 +805,7 @@ class ProductProduct(models.Model):
         """)
         return dict(self.env.cr.fetchall())
     def _load_pos_data(self, data):
-        res = super()._load_pos_data(data)
-        qty_map = self._get_non_expired_qty()
-        filtered = []
-        for product in self:
-            if qty_map.get(product.id, 0) > 0:
-                filtered.append(product.id)
-        return {
-            k: v for k, v in res.items()
-            if not isinstance(v, dict) or v.get("id") in filtered
-        }
+        return super()._load_pos_data(data)
     def action_open_expired_stock_variant(self):
         return {
             'type': 'ir.actions.act_window',
