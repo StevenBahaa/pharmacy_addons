@@ -1,3 +1,3 @@
 id,name,model_id:id,group_id:id,perm_read,perm_write,perm_create,perm_unlink
-access_pharmacy_wishlist_user,pharmacy.wishlist.user,model_pharmacy_wishlist,base.group_user,1,1,1,0
-access_pharmacy_wishlist_manager,pharmacy.wishlist.manager,model_pharmacy_wishlist,pharmacy_wishlist.group_wishlist_manager,1,1,1,1
+access_pharmacy_wishlist_cashier,pharmacy.wishlist.cashier,model_pharmacy_wishlist,pharmacy_base.group_cashier,1,1,1,0
+access_pharmacy_wishlist_manager,pharmacy.wishlist.manager,model_pharmacy_wishlist,pharmacy_base.group_pharmacy_manager,1,1,1,1
