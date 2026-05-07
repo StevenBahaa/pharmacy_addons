@@ -167,19 +167,7 @@ class ProductTemplate(models.Model):
     # FIELDS: RELATED PRODUCT
     # =========================================================================
 
-    similar_product_ids  = fields.One2many(
-        comodel_name='product.related.product',
-        inverse_name='product_id',
-        string='Similar / Alternative Products',
-        domain=[('relation_type' , '=' , 'similar')]
-    )
-
-    complementary_product_ids   = fields.One2many(
-        comodel_name='product.related.product',
-        inverse_name='product_id',
-        string='Complementary  Products',
-        domain=[('relation_type' , '=' , 'complementary')]
-    )
+    # Related Product logic moved to pharmacy_base
 
         # SC1-UC-01: Field to store the last discount from vendor bills
     x_last_purchase_discount = fields.Float(
@@ -753,32 +741,7 @@ class ProductProduct(models.Model):
 
         return self._search(args, limit=limit)
     
-    @api.depends(
-        'product_tmpl_id.similar_product_ids',
-        'product_tmpl_id.complementary_product_ids',
-        'product_tmpl_id.similar_product_ids.related_product_id',
-        'product_tmpl_id.complementary_product_ids.related_product_id',
-        'product_tmpl_id.similar_product_ids.active',
-        'product_tmpl_id.complementary_product_ids.active',
-        'product_tmpl_id.similar_product_ids.priority',
-        'product_tmpl_id.complementary_product_ids.priority',
-    )
-    def _compute_pos_related_products(self):
-        for product in self:
-            similar_lines = product.product_tmpl_id.similar_product_ids.filtered(
-                lambda line: line.active and line.related_product_id
-            ).sorted(lambda line: line.priority, reverse=True)
-
-            complementary_lines = product.product_tmpl_id.complementary_product_ids.filtered(
-                lambda line: line.active and line.related_product_id
-            ).sorted(lambda line: line.priority, reverse=True)
-
-            similar_products = similar_lines.mapped('related_product_id.product_variant_id')
-            complementary_products = complementary_lines.mapped('related_product_id.product_variant_id')
-
-            product.x_pos_similar_product_ids = similar_products
-            product.x_pos_complementary_product_ids = complementary_products
-            product.x_has_pos_related_products = bool(similar_products or complementary_products)
+    # POS Related Product logic moved to pharmacy_base
 
     qty_expired = fields.Float(
         string="Expired Qty",

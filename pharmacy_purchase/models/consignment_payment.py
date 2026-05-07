@@ -5,6 +5,10 @@ class ConsignmentPayment(models.Model):
     _description = "Consignment Payment"
     _order = 'date desc'
 
+    @api.model
+    def _valid_field_parameter(self, field, name):
+        return name == 'tracking' or super()._valid_field_parameter(field, name)
+
     purchase_order_id = fields.Many2one(
         comodel_name= 'purchase.order', 
         string='Purchase Order',
@@ -65,6 +69,7 @@ class ConsignmentPayment(models.Model):
     billed_qty = fields.Float(
         string='Billed Qty',
         required=True,
+        default=0.0,
     )
 
     # For backward compatibility if needed, but we'll use billed_qty
@@ -105,7 +110,3 @@ class ConsignmentPayment(models.Model):
                 record.state = 'paid'
             else:
                 record.state = 'draft'
-    
-
-    
-    

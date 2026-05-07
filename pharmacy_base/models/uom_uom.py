@@ -42,17 +42,17 @@ class UomUom(models.Model):
         return list(dict.fromkeys(allowed_ids))
 
     @api.model
-    def _name_search(self, name="", args=None, operator="ilike", limit=100, name_get_uid=None):
-        args = list(args or [])
+    def _name_search(self, name, domain=None, operator='ilike', limit=None, order=None):
+        domain = list(domain or [])
         allowed_ids = self._pharmacy_get_sale_allowed_uom_ids_from_context()
         if allowed_ids:
-            args = expression.AND([args, [("id", "in", allowed_ids)]])
+            domain = expression.AND([domain, [("id", "in", allowed_ids)]])
         return super()._name_search(
             name=name,
-            args=args,
+            domain=domain,
             operator=operator,
             limit=limit,
-            name_get_uid=name_get_uid,
+            order=order,
         )
 
     @api.model
@@ -60,8 +60,4 @@ class UomUom(models.Model):
         """
         Ensure filtering also applies when any override bypasses _name_search.
         """
-        args = list(args or [])
-        allowed_ids = self._pharmacy_get_sale_allowed_uom_ids_from_context()
-        if allowed_ids:
-            args = expression.AND([args, [("id", "in", allowed_ids)]])
-        return super().name_search(name=name, args=args, operator=operator, limit=limit)
+        return self._name_search(name, args, operator, limit)

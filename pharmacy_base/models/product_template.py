@@ -313,13 +313,13 @@ class ProductTemplate(models.Model):
         return res
 
     @api.model
-    def _name_search(self, name='', args=None, operator='ilike', limit=100, name_get_uid=None):
-        args = args or []
+    def _name_search(self, name, domain=None, operator='ilike', limit=None, order=None):
+        domain = domain or []
         if name:
-            domain = expression.OR([
+            name_domain = expression.OR([
                 [('name', operator, name)],
                 [('default_code', operator, name)],
                 [('generic_name', operator, name)],
             ])
-            args = expression.AND([args, domain])
-        return self._search(args, limit=limit, access_rights_uid=name_get_uid)
+            domain = expression.AND([domain, name_domain])
+        return self._search(domain, limit=limit, order=order)
