@@ -1,0 +1,24 @@
+<?xml version="1.0" encoding="utf-8"?>
+<odoo>
+    <record id="view_partner_form_pharmacy_wishlist" model="ir.ui.view">
+        <field name="name">res.partner.form.pharmacy.wishlist</field>
+        <field name="model">res.partner</field>
+        <field name="inherit_id" ref="base.view_partner_form"/>
+        <field name="arch" type="xml">
+            <xpath expr="//field[@name='ref']" position="after">
+                <field name="pharmacy_customer_code" readonly="1"/>
+            </xpath>
+        </field>
+    </record>
+
+    <record id="view_res_partner_filter_pharmacy_wishlist" model="ir.ui.view">
+        <field name="name">res.partner.select.pharmacy.wishlist</field>
+        <field name="model">res.partner</field>
+        <field name="inherit_id" ref="base.view_res_partner_filter"/>
+        <field name="arch" type="xml">
+            <xpath expr="//field[@name='name']" position="after">
+                <field name="pharmacy_customer_code"/>
+            </xpath>
+        </field>
+    </record>
+</odoo>

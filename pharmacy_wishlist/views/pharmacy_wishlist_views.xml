@@ -4,7 +4,7 @@
         <field name="name">pharmacy.wishlist.tree</field>
         <field name="model">pharmacy.wishlist</field>
         <field name="arch" type="xml">
-            <list string="Product Wishlist" decoration-info="state == 'available'" decoration-muted="state == 'called'">
+            <list string="Product Wishlist" decoration-info="state == 'available_not_called'" decoration-muted="state == 'called'">
                 <field name="create_date" string="Date"/>
                 <field name="product_id"/>
                 <field name="quantity"/>
@@ -14,10 +14,11 @@
                 <field name="shop_name"/>
                 <field name="location_names"/>
                 <field name="user_id" widget="many2one_avatar_user"/>
+                <field name="company_id" groups="base.group_multi_company"/>
                 <field name="state" widget="badge" 
                        decoration-danger="state == 'not_called'" 
-                       decoration-success="state == 'available'" 
-                       decoration-warning="state == 'no_answer'"
+                       decoration-success="state == 'available_not_called'" 
+                       decoration-warning="state == 'called_not_answered'"
                        decoration-info="state == 'called'"/>
             </list>
         </field>
@@ -29,9 +30,9 @@
         <field name="arch" type="xml">
             <form string="Product Wishlist">
                 <header>
-                    <button name="action_set_no_answer" string="No Answer" type="object" class="btn-secondary" invisible="state not in ['not_called', 'available']"/>
+                    <button name="action_set_no_answer" string="No Answer" type="object" class="btn-secondary" invisible="state not in ['not_called', 'available_not_called']"/>
                     <button name="action_set_called" string="Mark as Called" type="object" class="btn-primary" invisible="state == 'called'"/>
-                    <field name="state" widget="statusbar" statusbar_visible="not_called,available,called"/>
+                    <field name="state" widget="statusbar" statusbar_visible="not_called,available_not_called,called"/>
                 </header>
                 <sheet>
                     <group>
@@ -40,11 +41,13 @@
                             <field name="quantity"/>
                             <field name="partner_id"/>
                             <field name="customer_phone"/>
+                            <field name="customer_unique_code"/>
                         </group>
                         <group>
                             <field name="shop_name"/>
                             <field name="location_names"/>
                             <field name="user_id"/>
+                            <field name="company_id" groups="base.group_multi_company"/>
                         </group>
                     </group>
                     <notebook>
@@ -66,11 +69,13 @@
                 <field name="product_id"/>
                 <field name="partner_id"/>
                 <field name="customer_phone"/>
-                <filter string="Available Stock" name="available" domain="[('state', '=', 'available')]"/>
+                <filter string="Available Stock" name="available" domain="[('state', '=', 'available_not_called')]"/>
                 <filter string="Not Called" name="not_called" domain="[('state', '=', 'not_called')]"/>
+                <filter string="No Answer" name="no_answer" domain="[('state', '=', 'called_not_answered')]"/>
                 <group expand="0" string="Group By">
                     <filter string="Product" name="group_by_product" context="{'group_by': 'product_id'}"/>
                     <filter string="Status" name="group_by_state" context="{'group_by': 'state'}"/>
+                    <filter string="Company" name="group_by_company" context="{'group_by': 'company_id'}"/>
                 </group>
             </search>
         </field>

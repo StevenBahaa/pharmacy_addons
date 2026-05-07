@@ -1,0 +1,10 @@
+<?xml version="1.0" encoding="utf-8"?>
+<odoo>
+    <record id="seq_pharmacy_customer_code" model="ir.sequence">
+        <field name="name">Pharmacy Customer Code</field>
+        <field name="code">pharmacy.customer.code</field>
+        <field name="prefix">PHC</field>
+        <field name="padding">6</field>
+        <field name="company_id" eval="False"/>
+    </record>
+</odoo>

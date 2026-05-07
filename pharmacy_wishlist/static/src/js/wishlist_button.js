@@ -26,7 +26,7 @@ export class WishlistButton extends Component {
             title: "Add to Wishlist",
             customer_name: partner ? partner.name : "",
             customer_phone: partner ? (partner.phone || partner.mobile || "") : "",
-            customer_code: partner ? (partner.ref || "") : "",
+            customer_code: partner ? (partner.pharmacy_customer_code || "") : "",
             confirm: async (customer_data, lines) => {
                 try {
                     // Create a wishlist record for each product line

@@ -20,9 +20,12 @@
         'crm',
     ],
     'data': [
+        'security/security.xml',
         'security/ir.model.access.csv',
+        'data/ir_sequence_data.xml',
         'views/pharmacy_wishlist_views.xml',
         'views/res_users_views.xml',
+        'views/res_partner_views.xml',
     ],
     'assets': {
         'point_of_sale._assets_pos': [

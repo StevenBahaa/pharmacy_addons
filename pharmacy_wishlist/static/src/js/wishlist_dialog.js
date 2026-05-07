@@ -35,7 +35,10 @@ export class WishlistDialog extends Component {
     }
 
     get products() {
-        return this.pos.models["product.product"].getAll().filter((p) => p.available_in_pos);
+        return this.pos.models["product.product"].getAll().filter((p) => {
+            // Filter products that are available in POS and have 0 or less stock
+            return p.available_in_pos && (p.qty_available <= 0);
+        });
     }
 
     addLine() {
@@ -64,6 +67,15 @@ export class WishlistDialog extends Component {
         if (validLines.length === 0) {
             this.notification.add("At least one product must be selected.", { type: "danger" });
             return;
+        }
+
+        // Final validation for each product's stock
+        for (const line of validLines) {
+            const product = this.pos.models["product.product"].get(parseInt(line.product_id));
+            if (product && product.qty_available > 0) {
+                this.notification.add(`Product ${product.display_name} is still in stock (${product.qty_available}). Please sell it instead.`, { type: "warning" });
+                return;
+            }
         }
 
         await this.props.confirm(
