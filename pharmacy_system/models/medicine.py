@@ -169,12 +169,7 @@ class ProductTemplate(models.Model):
 
     # Related Product logic moved to pharmacy_base
 
-        # SC1-UC-01: Field to store the last discount from vendor bills
-    x_last_purchase_discount = fields.Float(
-        string="Last Purchase Discount (%)",
-        help="This field is automatically updated from the last validated vendor bill.",
-        readonly=True
-    )
+    
 
     # =========================================================================
     # COMPUTE METHODS: COMMISSION

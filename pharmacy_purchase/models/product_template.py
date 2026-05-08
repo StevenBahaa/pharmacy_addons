@@ -9,3 +9,9 @@ class ProductTemplate(models.Model):
         help="This field is automatically updated from the last validated vendor bill.",
         readonly=True,
     )
+
+    discount_history_ids = fields.One2many(
+        'product.discount.history',
+        'product_tmpl_id',
+        string="Discount History"
+    )

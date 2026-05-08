@@ -7,3 +7,5 @@ from . import stock_move
 from . import purchase_order
 from . import consignment_payment
 from . import stock_picking
+from . import product_discount_history
+from . import purchase_order_tracking

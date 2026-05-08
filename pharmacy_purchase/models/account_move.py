@@ -3,6 +3,9 @@ from odoo.exceptions import UserError
 
 
 
+import logging
+_logger = logging.getLogger(__name__)
+
 class AccountMove(models.Model):
     _inherit = 'account.move'
 
@@ -14,13 +17,46 @@ class AccountMove(models.Model):
 
     def action_post(self):
         res = super(AccountMove, self).action_post()
+        _logger.info("PHARMACY_PURCHASE: action_post called for move(s) %s", self.ids)
         for move in self:
             if move.move_type == 'in_invoice':
+                _logger.info("PHARMACY_PURCHASE: Processing Vendor Bill %s", move.name)
+                products_map = {}
+                # collect max discount per product template
                 for line in move.invoice_line_ids:
-                    if line.product_id:
-                        line.product_id.product_tmpl_id.write({
-                            'x_last_purchase_discount': line.discount
-                        })
+                    _logger.info("PHARMACY_PURCHASE: Line %s - Product: %s - Discount: %s", line.id, line.product_id.name, line.discount)
+                    product = line.product_id.product_tmpl_id
+                    if not product:
+                        continue
+                    if product not in products_map:
+                        products_map[product] = []
+                    products_map[product].append(line.discount or 0.0)
+
+                # update products and create history
+                for product, discounts in products_map.items():
+                    max_discount = max(discounts)
+                    old_discount = product.x_last_purchase_discount
+                    _logger.info("PHARMACY_PURCHASE: Updating Product %s - Old Discount: %s - New Discount: %s", product.name, old_discount, max_discount)
+                    product.sudo().x_last_purchase_discount = max_discount
+
+                    # create history with sudo as this is an automated system log
+                    history = self.env['product.discount.history'].sudo().create({
+                        'product_tmpl_id': product.id,
+                        'supplier_id': move.partner_id.id,
+                        'invoice_id': move.id,
+                        'discount': max_discount,
+                        'date': move.invoice_date,
+                    })
+                    _logger.info("PHARMACY_PURCHASE: Created History Record %s", history.id)
+
+                    # chatter log
+                    product.message_post(body=f"""
+                        <b>Last Purchase Discount Updated</b><br/>
+                        Old: {old_discount}%<br/>
+                        New: {max_discount}%<br/>
+                        Supplier: {move.partner_id.name}<br/>
+                        Invoice: {move.name}
+                    """)
             
             # Update billed_qty on consignment stock lines
             if move.is_consignment_bill and move.state == 'posted':
@@ -31,10 +67,29 @@ class AccountMove(models.Model):
         return res
 
     def button_draft(self):
-        # If moving back to draft, we should ideally reduce billed_qty, 
-        # but Odoo 18 might have different flows. For now, let's just handle posting.
-        # Actually, let's handle it for consistency.
         for move in self:
+            if move.move_type == 'in_invoice':
+                for line in move.invoice_line_ids:
+                    product = line.product_id.product_tmpl_id
+                    if not product:
+                        continue
+
+                    # find last posted invoice for this product
+                    last_invoice = self.env['account.move'].search([
+                        ('move_type', '=', 'in_invoice'),
+                        ('state', '=', 'posted'),
+                        ('id', '!=', move.id),
+                        ('invoice_line_ids.product_id.product_tmpl_id', '=', product.id)
+                    ], order='invoice_date desc, id desc', limit=1)
+
+                    if last_invoice:
+                        prev_discounts = last_invoice.invoice_line_ids.filtered(
+                            lambda l: l.product_id.product_tmpl_id == product
+                        ).mapped('discount')
+                        product.x_last_purchase_discount = max(prev_discounts) if prev_discounts else 0.0
+                    else:
+                        product.x_last_purchase_discount = 0.0
+
             if move.is_consignment_bill and move.state == 'posted':
                 payments = self.env['pharmacy.consignment.payment'].search([('vendor_bill_id', '=', move.id)])
                 for payment in payments:

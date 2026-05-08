@@ -1,0 +1,178 @@
+<?xml version="1.0" encoding="utf-8"?>
+<odoo>
+    <!-- ═══════════════════════════════════════════════════════════════════════
+         Purchase Order Tracking — List View (on purchase.order.line)
+         SC3-UC-03 Acceptance Criteria Implementation
+         ═══════════════════════════════════════════════════════════════════════ -->
+
+    <!-- ── Search View ──────────────────────────────────────────────────────── -->
+    <record id="view_purchase_order_tracking_search" model="ir.ui.view">
+        <field name="name">purchase.order.line.tracking.search</field>
+        <field name="model">purchase.order.line</field>
+        <field name="arch" type="xml">
+            <search string="Search Purchase Orders">
+
+                <!-- Search Bar: by PO reference, vendor, or product -->
+                <field name="order_id"
+                       string="PO Reference"
+                       filter_domain="[('order_id.name', 'ilike', self)]"/>
+                <field name="vendor_id"
+                       string="Vendor"
+                       filter_domain="[('vendor_id.name', 'ilike', self)]"/>
+                <field name="product_id"
+                       string="Product"
+                       filter_domain="['|',
+                           ('product_id.name', 'ilike', self),
+                           ('product_id.default_code', 'ilike', self)]"/>
+
+                <!-- ── Filters ──────────────────────────────────────────────── -->
+                <filter string="Pending (Qty Not Received > 0)"
+                        name="filter_pending"
+                        domain="[('qty_not_received', '>', 0)]"/>
+
+                <filter string="Fully Received"
+                        name="filter_fully_received"
+                        domain="[('qty_not_received', '&lt;=', 0)]"/>
+
+                <filter string="Overdue Deliveries"
+                        name="filter_overdue"
+                        domain="[('is_overdue', '=', True)]"/>
+
+                <separator/>
+
+                <!-- Date Range Filter -->
+                <filter string="Confirmed This Month"
+                        name="filter_confirmed_this_month"
+                        domain="[
+                            ('confirmation_date', '&gt;=', (context_today() + relativedelta(day=1)).strftime('%Y-%m-%d')),
+                            ('confirmation_date', '&lt;=', (context_today() + relativedelta(day=31)).strftime('%Y-%m-%d'))
+                        ]"/>
+
+                <separator/>
+
+                <!-- Status Filters -->
+                <filter string="Purchase Orders Only"
+                        name="filter_po_state"
+                        domain="[('order_id.state', 'in', ['purchase', 'done'])]"/>
+
+                <!-- ── Group By ─────────────────────────────────────────────── -->
+                <group expand="0" string="Group By">
+                    <filter string="PO Reference"
+                            name="group_by_po"
+                            context="{'group_by': 'order_id'}"/>
+                    <filter string="Vendor"
+                            name="group_by_vendor"
+                            context="{'group_by': 'vendor_id'}"/>
+                    <filter string="Confirmation Date"
+                            name="group_by_confirm_date"
+                            context="{'group_by': 'confirmation_date:month'}"/>
+                    <filter string="Delivery Status"
+                            name="group_by_status"
+                            context="{'group_by': 'delivery_status'}"/>
+                </group>
+
+            </search>
+        </field>
+    </record>
+
+    <!-- ── List View ────────────────────────────────────────────────────────── -->
+    <record id="view_purchase_order_tracking_list" model="ir.ui.view">
+        <field name="name">purchase.order.line.tracking.list</field>
+        <field name="model">purchase.order.line</field>
+        <field name="arch" type="xml">
+            <list string="Purchase Order Tracking"
+                  decoration-warning="is_overdue == True"
+                  decoration-success="qty_not_received &lt;= 0"
+                  default_order="order_id desc, id asc"
+                  export_xlsx="1"
+                  class="o_po_tracking_list">
+
+                <!-- Vendor -->
+                <field name="vendor_id"
+                       string="Vendor"
+                       optional="show"
+                       readonly="1"/>
+
+                <!-- Product with internal reference -->
+                <field name="product_display_name"
+                       string="Product"
+                       optional="show"
+                       readonly="1"/>
+
+                <!-- Hidden fields needed for decorations / domain -->
+                <field name="product_id" column_invisible="True"/>
+                <field name="is_overdue" column_invisible="True"/>
+                <field name="delivery_status" column_invisible="True"/>
+
+                <!-- Quantity Ordered -->
+                <field name="product_qty"
+                       string="Qty Ordered"
+                       optional="show"
+                       readonly="1"
+                       sum="Total Ordered"/>
+
+                <!-- Quantity Received -->
+                <field name="qty_received"
+                       string="Qty Received"
+                       optional="show"
+                       readonly="1"
+                       sum="Total Received"/>
+
+                <!-- Quantity Not Received — color coded via widget -->
+                <field name="qty_not_received"
+                       string="Qty Not Received (الفرق)"
+                       optional="show"
+                       readonly="1"
+                       sum="Total Not Received"
+                       decoration-danger="qty_not_received &gt; 0"
+                       decoration-success="qty_not_received &lt;= 0"
+                       widget="float"/>
+
+                <!-- Confirmation Date -->
+                <field name="confirmation_date"
+                       string="Confirmation Date"
+                       optional="show"
+                       readonly="1"/>
+
+                <!-- Expected Arrival Date -->
+                <field name="date_planned"
+                       string="Expected Arrival Date"
+                       optional="show"
+                       readonly="1"/>
+
+                <!-- PO Reference (for group by context) -->
+                <field name="order_id"
+                       string="PO Reference"
+                       optional="show"
+                       readonly="1"/>
+
+            </list>
+        </field>
+    </record>
+
+    <!-- ── Action: Purchase Order Tracking ──────────────────────────────────── -->
+    <record id="action_purchase_order_tracking" model="ir.actions.act_window">
+        <field name="name">Purchase Order Tracking</field>
+        <field name="res_model">purchase.order.line</field>
+        <field name="view_mode">list</field>
+        <field name="view_ids" eval="[(5, 0, 0),
+            (0, 0, {'view_mode': 'list', 'view_id': ref('view_purchase_order_tracking_list')})]"/>
+        <field name="search_view_id" ref="view_purchase_order_tracking_search"/>
+        <!-- Default: show only POs with pending quantities -->
+        <field name="domain">[('order_id.state', 'in', ['purchase', 'done'])]</field>
+        <field name="context">{
+            'search_default_group_by_po': 1,
+            'search_default_filter_pending': 0
+        }</field>
+        <field name="help" type="html">
+            <p class="o_view_nocontent_smiling_face">
+                No purchase order lines found.
+            </p>
+            <p>
+                All purchase orders have been fully received, or no purchase orders
+                are currently in progress. Use the filters above to view all orders.
+            </p>
+        </field>
+    </record>
+
+</odoo>

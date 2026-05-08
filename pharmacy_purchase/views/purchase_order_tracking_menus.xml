@@ -1,0 +1,15 @@
+<?xml version="1.0" encoding="utf-8"?>
+<odoo>
+    <!-- ═══════════════════════════════════════════════════════════════════════
+         Purchase Order Tracking — Menu Item
+         SC3-UC-03: Accessible from Purchase > Purchase Order Tracking
+         ═══════════════════════════════════════════════════════════════════════ -->
+
+    <!-- Add menu item under Purchase top-level menu -->
+    <menuitem id="menu_purchase_order_tracking"
+              name="Purchase Order Tracking"
+              parent="purchase.menu_purchase_root"
+              action="action_purchase_order_tracking"
+              sequence="25"/>
+
+</odoo>

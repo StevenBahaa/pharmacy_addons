@@ -1,0 +1,32 @@
+<?xml version="1.0" encoding="utf-8"?>
+<odoo>
+    <record id="view_discount_history_list" model="ir.ui.view">
+        <field name="name">product.discount.history.list</field>
+        <field name="model">product.discount.history</field>
+        <field name="arch" type="xml">
+            <list create="0" edit="0">
+                <field name="product_tmpl_id"/>
+                <field name="date"/>
+                <field name="supplier_id"/>
+                <field name="invoice_id"/>
+                <field name="discount" widget="percentage"/>
+            </list>
+        </field>
+    </record>
+
+    <record id="view_discount_history_search" model="ir.ui.view">
+        <field name="name">product.discount.history.search</field>
+        <field name="model">product.discount.history</field>
+        <field name="arch" type="xml">
+            <search>
+                <field name="product_tmpl_id"/>
+                <field name="supplier_id"/>
+                <group expand="0" string="Group By">
+                    <filter string="Product" name="group_by_product" context="{'group_by': 'product_tmpl_id'}"/>
+                    <filter string="Supplier" name="group_by_supplier" context="{'group_by': 'supplier_id'}"/>
+                    <filter string="Date" name="group_by_date" context="{'group_by': 'date'}"/>
+                </group>
+            </search>
+        </field>
+    </record>
+</odoo>
