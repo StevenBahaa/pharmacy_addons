@@ -34,9 +34,10 @@ class PosOrder(models.Model):
     def action_pos_order_paid(self):
         self._check_pharmacy_stock_availability()
         return super().action_pos_order_paid()
-    def _process_order(self, order, draft, existing_order):
+    @api.model
+    def _process_order(self, order, draft, **kwargs):
         # Also check on process for robustness
-        return super()._process_order(order, draft, existing_order)
+        return super()._process_order(order, draft, **kwargs)
 class PosSession(models.Model):
     _inherit = 'pos.session'
     def _loader_params_product_product(self):
