@@ -17,6 +17,7 @@
         'pharmacy_pos',
         'pharmacy_reports',
         'pharmacy_stock_reservation',
+        'sale_stock_restrict',
     ],
 
     'data': [
