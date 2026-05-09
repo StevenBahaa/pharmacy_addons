@@ -16,6 +16,9 @@
                         <field name="critical_expiry_limit"/>
                         <span class="ms-2">Days</span>
                     </setting>
+                    <setting string="Notification Recipients" help="Inventory Managers who will receive expiry notifications">
+                        <field name="notification_recipients" widget="many2many_tags"/>
+                    </setting>
                 </block>
             </xpath>
         </field>

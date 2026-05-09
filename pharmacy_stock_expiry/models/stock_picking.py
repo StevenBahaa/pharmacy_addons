@@ -34,8 +34,46 @@ class StockPicking(models.Model):
                 raise UserError(
                     "❌ You must enter a reason when transferring to Expired location."
                 )
+            # Enforce incoming/outgoing safety checks
+            if picking.picking_type_id.code == 'incoming':
+                picking._check_incoming_expiry_safety()
+            elif picking.picking_type_id.code == 'outgoing':
+                picking._check_outgoing_expiry_safety()
+                
             picking._check_required_expiry_month_year()
         return super().button_validate()
+
+    def _check_incoming_expiry_safety(self):
+        today = fields.Date.context_today(self)
+        for picking in self:
+            for line in picking.move_line_ids:
+                product = line.product_id
+                if not product or product.tracking == 'none' or not product.product_tmpl_id.use_expiration_date:
+                    continue
+
+                expiry_date = line.expiration_date or (line.lot_id and line.lot_id.expiration_date)
+                
+                # Check for parsed expiration datetime if present
+                if expiry_date and expiry_date.date() < today:
+                    raise ValidationError(_(
+                        "CRITICAL SAFETY: Cannot receive expired product '%s'. "
+                        "Expiry date %s is in the past."
+                    ) % (product.display_name, expiry_date.date()))
+
+    def _check_outgoing_expiry_safety(self):
+        today = fields.Date.context_today(self)
+        for picking in self:
+            for line in picking.move_line_ids:
+                product = line.product_id
+                if not product or product.tracking == 'none' or not product.product_tmpl_id.use_expiration_date:
+                    continue
+
+                if line.lot_id and line.lot_id.expiration_date and line.lot_id.expiration_date.date() < today:
+                    raise ValidationError(_(
+                        "CRITICAL SAFETY: Attempting to deliver an EXPIRED lot!\n"
+                        "Product: %s\nLot: %s\nExpired on: %s\n\n"
+                        "Please re-assign a valid lot."
+                    ) % (product.display_name, line.lot_id.name, line.lot_id.expiration_date.date()))
 
     def _check_required_expiry_month_year(self):
         for picking in self:

@@ -69,15 +69,16 @@ class StockQuant(models.Model):
                 'location_dest_id': expired_location.id,
             })
 
-    def _get_domain_locations(self, locations):
-        domain = super()._get_domain_locations(locations)
-
-        # Include expired locations as internal-like
-        domain = ['|',
-            ('location_id.usage', '=', 'internal'),
-            ('location_id.usage', '=', 'expired')
-        ]
-
+    @api.model
+    def _get_gather_domain(self, product_id, location_id, lot_id=None, package_id=None, owner_id=None, strict=False):
+        domain = super()._get_gather_domain(product_id, location_id, lot_id, package_id, owner_id, strict)
+        
+        # Harden FEFO: Do not gather expired lots for reservation
+        if location_id.usage == 'internal':
+            domain.append('|')
+            domain.append(('lot_id.expiration_date', '>=', fields.Datetime.now()))
+            domain.append(('lot_id.expiration_date', '=', False))
+            
         return domain
     
     def _get_inventory_domain(self):

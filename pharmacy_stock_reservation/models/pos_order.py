@@ -36,8 +36,31 @@ class PosOrder(models.Model):
         return super().action_pos_order_paid()
     @api.model
     def _process_order(self, order, draft, **kwargs):
-        # Also check on process for robustness
+        # Prevent expired lots from being validated in POS
+        self._check_pos_expiry_safety(order)
         return super()._process_order(order, draft, **kwargs)
+
+    @api.model
+    def _check_pos_expiry_safety(self, order_data):
+        today = fields.Date.context_today(self)
+        lines = order_data.get('data', {}).get('lines', [])
+        for line_tuple in lines:
+            if len(line_tuple) < 3:
+                continue
+            line_dict = line_tuple[2]
+            pack_lot_ids = line_dict.get('pack_lot_ids', [])
+            for lot_tuple in pack_lot_ids:
+                if len(lot_tuple) < 3:
+                    continue
+                lot_dict = lot_tuple[2]
+                lot_name = lot_dict.get('lot_name')
+                if lot_name:
+                    lot = self.env['stock.lot'].search([('name', '=', lot_name)], limit=1)
+                    if lot and lot.expiration_date and lot.expiration_date.date() < today:
+                        raise UserError(_(
+                            "POS SAFETY ALERT: You scanned an expired lot (%s). "
+                            "Sale has been blocked."
+                        ) % lot.name)
 class PosSession(models.Model):
     _inherit = 'pos.session'
     def _loader_params_product_product(self):

@@ -1,3 +1,3 @@
 id,name,model_id:id,group_id:id,perm_read,perm_write,perm_create,perm_unlink
-access_expired_log_user,access_expired_log_user,model_stock_expired_log,base.group_user,1,1,1,1
-access_expired_transfer_wizard,access.expired.transfer.wizard,model_expired_transfer_wizard,base.group_user,1,1,1,1
+access_expired_log_user,access_expired_log_user,model_stock_expired_log,pharmacy_base.group_pharmacy_manager,1,1,1,1
+access_expired_transfer_wizard,access.expired.transfer.wizard,model_expired_transfer_wizard,pharmacy_base.group_pharmacy_manager,1,1,1,1

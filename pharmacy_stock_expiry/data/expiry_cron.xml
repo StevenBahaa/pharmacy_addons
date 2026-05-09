@@ -13,7 +13,7 @@
             <field name="state">code</field>
 
             <!-- ده أهم سطر: استدعاء الدالة اللي برمجناها في ملف sttock_lot.py -->
-            <field name="code">model._create_expiry_activities()</field>
+            <field name="code">model.cron_detect_expired_lots()</field>
 
             <!--Interval
             Number & Type: يشتغل كل (1) يوم -->
