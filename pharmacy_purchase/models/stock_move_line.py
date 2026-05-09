@@ -16,21 +16,29 @@ class StockMoveLine(models.Model):
                 continue
 
             processed = False
-            # 1. Handle Consignment Sale (Outgoing move with vendor owner)
+            
+            # 1. Consignment Outgoing Moves
             if picking.picking_type_id.code == 'outgoing' and ml.owner_id:
-                ml._update_consignment_sale_qty()
-                processed = True
-                
-                # If it's also a Return to Vendor (supplier location)
                 if ml.location_dest_id.usage == 'supplier':
+                    # Return to Vendor
                     ml._update_consignment_return_qty()
+                else:
+                    # Consignment Sale (to customer or internal consumption)
+                    ml._update_consignment_sale_qty()
+                processed = True
 
-            # 2. Handle Consignment Receipt (Incoming from PO)
-            if not processed:
-                po = ml.move_id.purchase_line_id.order_id or picking.purchase_id
-                if po and po.is_consignment and picking.picking_type_id.code == 'incoming':
-                    ml._create_or_update_consignment_stock_line()
+            # 2. Consignment Incoming Moves (Customer Return or PO Receipt)
+            if not processed and picking.picking_type_id.code == 'incoming':
+                # Check for Customer Return (from customer location to internal)
+                if ml.location_id.usage == 'customer':
+                    ml._update_consignment_customer_return_qty()
                     processed = True
+                else:
+                    # PO Receipt
+                    po = ml.move_id.purchase_line_id.order_id or picking.purchase_id
+                    if po and po.is_consignment:
+                        ml._create_or_update_consignment_stock_line()
+                        processed = True
             
             if processed:
                 ml.x_is_consignment_processed = True
@@ -91,14 +99,22 @@ class StockMoveLine(models.Model):
         if not vendor_id:
             return
 
-        # Match by product + vendor owner + lot
-        # We search for the oldest consignment line that has remaining quantity
-        cons_lines = self.env['pharmacy.consignment.stock.line'].search([
+        # Determine the warehouse for branch isolation
+        warehouse_id = self.picking_id.picking_type_id.warehouse_id.id or self.location_id.warehouse_id.id
+
+        domain = [
             ('product_id', '=', self.product_id.id),
             ('vendor_id', '=', vendor_id),
             ('lot_id', '=', self.lot_id.id),
             ('remaining_qty', '>', 0)
-        ], order='id asc')
+        ]
+        
+        if warehouse_id:
+            domain.append(('purchase_order_id.picking_type_id.warehouse_id', '=', warehouse_id))
+
+        # Match by product + vendor owner + lot + warehouse
+        # We search for the oldest consignment line that has remaining quantity
+        cons_lines = self.env['pharmacy.consignment.stock.line'].search(domain, order='id asc')
 
         qty_to_attribute = self.quantity
         for line in cons_lines:
@@ -109,10 +125,50 @@ class StockMoveLine(models.Model):
             line.sold_qty += attribute_qty
             qty_to_attribute -= attribute_qty
         
-        # If there's still qty_to_attribute > 0, it means we sold more than we tracked as received
-        # for this specific lot/owner combination.
+        # If there's still qty_to_attribute > 0, attribute to the first line found
         if qty_to_attribute > 0 and cons_lines:
             cons_lines[0].sold_qty += qty_to_attribute
+
+    def _update_consignment_customer_return_qty(self):
+        self.ensure_one()
+        
+        # Determine the vendor owner
+        vendor_id = self.owner_id.id
+        if not vendor_id and self.lot_id:
+            tracking_line = self.env['pharmacy.consignment.stock.line'].search([
+                ('product_id', '=', self.product_id.id),
+                ('lot_id', '=', self.lot_id.id)
+            ], limit=1)
+            if tracking_line:
+                vendor_id = tracking_line.vendor_id.id
+
+        if not vendor_id:
+            return
+
+        # Determine the warehouse for branch isolation
+        warehouse_id = self.picking_id.picking_type_id.warehouse_id.id or self.location_dest_id.warehouse_id.id
+
+        domain = [
+            ('product_id', '=', self.product_id.id),
+            ('vendor_id', '=', vendor_id),
+            ('lot_id', '=', self.lot_id.id),
+            ('sold_qty', '>', 0)
+        ]
+        
+        if warehouse_id:
+            domain.append(('purchase_order_id.picking_type_id.warehouse_id', '=', warehouse_id))
+
+        # Deduct from the newest tracking lines first (LIFO for returns)
+        cons_lines = self.env['pharmacy.consignment.stock.line'].search(domain, order='id desc')
+
+        qty_to_return = self.quantity
+        for line in cons_lines:
+            if qty_to_return <= 0:
+                break
+            
+            return_qty = min(qty_to_return, line.sold_qty)
+            line.sold_qty -= return_qty
+            qty_to_return -= return_qty
 
     def _update_consignment_return_qty(self):
         self.ensure_one()

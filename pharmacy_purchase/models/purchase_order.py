@@ -37,20 +37,28 @@ class PurchaseOrder(models.Model):
             if not order.is_consignment:
                 continue
             
-            # 1. Sync Receipts (Creates/Updates Tracking Lines)
-            pickings = order.picking_ids.filtered(lambda p: p.state == 'done' and p.picking_type_id.code == 'incoming')
-            for ml in pickings.move_line_ids:
-                if ml.state == 'done':
-                    ml.x_is_consignment_processed = False # Force re-process
-                    ml._create_or_update_consignment_stock_line()
-            
-            # 2. Sync Sales (Updates Sold Qty for the Lots in this PO)
+            # Reset all quantities before recalculating
             tracking_lines = self.env['pharmacy.consignment.stock.line'].search([
                 ('purchase_order_id', '=', order.id)
             ])
             for line in tracking_lines:
-                # Reset sold qty for re-calculation
+                line.received_qty = 0.0
                 line.sold_qty = 0.0
+                line.returned_qty = 0.0
+
+            # 1. Sync Receipts (Creates/Updates Tracking Lines)
+            pickings = order.picking_ids.filtered(lambda p: p.state == 'done' and p.picking_type_id.code == 'incoming')
+            for ml in pickings.move_line_ids:
+                if ml.state == 'done' and ml.location_id.usage == 'supplier':
+                    ml.x_is_consignment_processed = False # Force re-process
+                    ml._create_or_update_consignment_stock_line()
+            
+            # 2. Sync Sales & Returns
+            # Re-fetch tracking lines as some might have been created above
+            tracking_lines = self.env['pharmacy.consignment.stock.line'].search([
+                ('purchase_order_id', '=', order.id)
+            ])
+            for line in tracking_lines:
                 # Find all outgoing moves for this specific Lot
                 outgoing_mls = self.env['stock.move.line'].search([
                     ('product_id', '=', line.product_id.id),
@@ -59,15 +67,29 @@ class PurchaseOrder(models.Model):
                     ('picking_id.picking_type_id.code', '=', 'outgoing'),
                 ])
                 for ml in outgoing_mls:
-                    ml.x_is_consignment_processed = False # Force re-process
-                    ml._update_consignment_sale_qty()
+                    if ml.location_dest_id.usage == 'supplier':
+                        ml._update_consignment_return_qty()
+                    else:
+                        ml._update_consignment_sale_qty()
+                        
+                # Find all incoming customer returns for this specific Lot
+                incoming_mls = self.env['stock.move.line'].search([
+                    ('product_id', '=', line.product_id.id),
+                    ('lot_id', '=', line.lot_id.id),
+                    ('state', '=', 'done'),
+                    ('picking_id.picking_type_id.code', '=', 'incoming'),
+                    ('location_id.usage', '=', 'customer'),
+                ])
+                for ml in incoming_mls:
+                    ml._update_consignment_customer_return_qty()
+                    
         return True
 
 
     def action_open_consignment_tracking(self):
         self.ensure_one()
-        # Automatically sync data before opening the wizard to ensure accuracy
-        self.action_sync_consignment_stock_lines()
+        # Removed the automatic sync to prevent unnecessary recalculations and data duplication
+        # The real-time triggers in stock.move.line handle this accurately.
         
         wizard_vals = {
             'purchase_order_id': self.id,
