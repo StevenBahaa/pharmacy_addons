@@ -1,0 +1,177 @@
+<?xml version="1.0" encoding="utf-8"?>
+<odoo>
+
+    <!--
+        PRODUCT VIEWS
+        ═══════════════════════════════════════════════════════════════════════
+        Odoo 18 XML IDs used:
+          · product.product_template_form_view      – product template form
+          · stock.product_template_form_view_warehouse – stock extension of
+                                                       product template form
+                                                       (adds Inventory tab)
+          · stock.product_template_tree_view        – product template list
+
+        FIXES applied vs previous version:
+        ──────────────────────────────────
+        FIX-1  stock.product_template_form_view_procurement_button does NOT
+               exist in Odoo 18. Replaced with:
+               stock.product_template_form_view_warehouse
+               which is the real Odoo 18 view that adds the Inventory tab
+               to product.template.
+
+        FIX-2  product.product_normal_form_view inheritance removed.
+               In Odoo 18, product.product has no standalone button_box —
+               the button_box div[@name='button_box'] lives on product.template
+               only. The variant form inherits from the template form rendering.
+               Trying to add buttons to product.product directly causes a
+               missing xpath error. Stat buttons on product.template cover all
+               variants automatically.
+
+        FIX-3  widget="float" with digits="[16,2]" removed from stat buttons.
+               Stat button values in Odoo 18 are rendered as plain text inside
+               o_stat_value span. Use <field> with no widget (or widget="float")
+               but digits attr must be a JSON-style tuple: digits="(16, 2)".
+               Simplified to just the field tag without digits override.
+
+        FIX-4  attrs="" syntax removed everywhere. Replaced with inline
+               invisible= expressions (Odoo 18 Python-domain syntax).
+
+        FIX-5  product.product smart-button view removed (see FIX-2).
+               All smart buttons are on product.template only.
+    -->
+
+    <!-- 1. Product Template FORM: Reserved + Available smart buttons ───────── -->
+    <record id="view_product_template_form_pharmacy" model="ir.ui.view">
+        <field name="name">product.template.form.pharmacy.reservation</field>
+        <field name="model">product.template</field>
+        <field name="inherit_id" ref="product.product_template_form_view"/>
+        <field name="arch" type="xml">
+            <!-- button_box exists on product.template in Odoo 18 ──────────── -->
+            <div name="button_box" position="inside">
+
+                <!-- Reserved qty button — hidden when 0 (no clutter) -->
+                <button class="oe_stat_button"
+                        type="object"
+                        name="action_open_quants"
+                        icon="fa-lock"
+                        invisible="type != 'consu' and (type != 'product' or pharmacy_reserved_qty == 0)">
+                    <div class="o_stat_info">
+                        <span class="o_stat_value">
+                            <field name="pharmacy_reserved_qty"/>
+                        </span>
+                        <span class="o_stat_text">Reserved</span>
+                    </div>
+                </button>
+
+                <!-- Available qty button — always shown for storable products -->
+                <button class="oe_stat_button"
+                        type="object"
+                        name="action_open_quants"
+                        icon="fa-check-circle"
+                        invisible="type != 'product'">
+                    <div class="o_stat_info">
+                        <span class="o_stat_value">
+                            <field name="pharmacy_available_qty"/>
+                        </span>
+                        <span class="o_stat_text">Available</span>
+                    </div>
+                </button>
+
+            </div>
+        </field>
+    </record>
+
+    <!-- 2. Product Template FORM: Stock Reservation tab in Inventory section
+         FIX-1: inherit_id corrected from
+                stock.product_template_form_view_procurement_button (non-existent)
+                → stock.product_template_form_view_warehouse (correct Odoo 18 ID)
+         XPath anchors to the existing 'general_information' page name ──────── -->
+    <!-- <record id="view_product_template_form_pharmacy_tab" model="ir.ui.view">
+        <field name="name">product.template.form.pharmacy.reservation.tab</field>
+        <field name="model">product.template</field>
+        <field name="inherit_id" ref="stock.product_template_form_view_warehouse"/>
+        <field name="arch" type="xml">
+            <page name="inventory_tab" position="after">
+                <page string="Stock Reservation"
+                      name="pharmacy_stock_reservation_tab"
+                      invisible="type != 'product'">
+                    <group>
+                        <group string="Quantity Summary (All Internal Locations)">
+                            <field name="qty_available"
+                                   string="On Hand Qty"
+                                   readonly="1"/>
+                            <field name="pharmacy_reserved_qty"
+                                   string="Reserved Qty"
+                                   readonly="1"/>
+                            <field name="pharmacy_available_qty"
+                                   string="Available Qty"
+                                   readonly="1"/>
+                        </group>
+                        <group string="How Reservation Works">
+                            <div colspan="2" class="text-muted" style="font-size:13px; line-height:1.6">
+                                <p>
+                                    <strong>On Hand</strong>: Total physical units in all internal locations.
+                                </p>
+                                <p>
+                                    <strong>Reserved</strong>: Units locked to confirmed (non-draft) transfer orders.
+                                    Cannot be sold via POS or re-transferred until the transfer is validated or cancelled.
+                                </p>
+                                <p>
+                                    <strong>Available</strong>: On Hand − Reserved.
+                                    This is the quantity checked when confirming new transfers or POS sales.
+                                </p>
+                            </div>
+                        </group>
+                    </group>
+                </page>
+            </page>
+        </field>
+    </record> -->
+    <!-- <record id="view_product_template_form_pharmacy_tab" model="ir.ui.view">
+        <field name="name">product.template.form.pharmacy.reservation.tab</field>
+        <field name="model">product.template</field>
+        <field name="inherit_id" ref="stock.product_template_form_view"/>
+        <field name="arch" type="xml">
+            <notebook position="inside">
+                <page string="Stock Reservation" name="pharmacy_stock_reservation_tab" invisible="type != 'product'">
+                    <group>
+                        <group string="Quantity Summary (All Internal Locations)">
+                            <field name="qty_available" string="On Hand Qty" readonly="1"/>
+                            <field name="pharmacy_reserved_qty" string="Reserved Qty" readonly="1"/>
+                            <field name="pharmacy_available_qty" string="Available Qty" readonly="1"/>
+                        </group>
+                        <group string="How Reservation Works">
+                            <div colspan="2" class="text-muted" style="font-size:13px; line-height:1.6">
+                                <p><strong>On Hand</strong>: Total physical units in all internal locations.</p>
+                                <p><strong>Reserved</strong>: Units locked to confirmed transfers. Cannot be sold or re-transferred until done or cancelled.</p>
+                                <p><strong>Available</strong>: On Hand − Reserved. Checked when confirming new transfers or POS sales.</p>
+                            </div>
+                        </group>
+                    </group>
+                </page>
+            </notebook>
+        </field>
+    </record> -->
+    <!-- 3. Product Template LIST: optional Reserved + Available columns
+         stock.product_template_tree_view — valid Odoo 18 ID
+         XPath targets field element (not list/tree tag) — valid ────────────── -->
+    <!-- <record id="view_product_template_tree_pharmacy" model="ir.ui.view">
+        <field name="name">product.template.tree.pharmacy.reservation</field>
+        <field name="model">product.template</field>
+        <field name="inherit_id" ref="stock.product_template_tree_view"/>
+        <field name="arch" type="xml">
+            <field name="qty_available" position="after">
+                <field name="pharmacy_reserved_qty"
+                       string="Reserved"
+                       optional="hide"
+                       decoration-warning="pharmacy_reserved_qty &gt; 0"/>
+                <field name="pharmacy_available_qty"
+                       string="Available"
+                       optional="show"
+                       decoration-danger="pharmacy_available_qty &lt;= 0"
+                       decoration-success="pharmacy_available_qty &gt; 0"/>
+            </field>
+        </field>
+    </record> -->
+
+</odoo>

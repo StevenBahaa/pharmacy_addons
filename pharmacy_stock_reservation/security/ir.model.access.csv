@@ -1,0 +1,7 @@
+id,name,model_id:id,group_id:id,perm_read,perm_write,perm_create,perm_unlink
+access_pharmacy_reservation_log_user,pharmacy.reservation.log user,model_pharmacy_reservation_log,base.group_user,1,0,0,0
+access_pharmacy_reservation_log_manager,pharmacy.reservation.log manager,model_pharmacy_reservation_log,group_pharmacy_inventory_manager,1,1,1,0
+access_force_unreserve_wizard_user,pharmacy.force.unreserve.wizard user,model_pharmacy_force_unreserve_wizard,base.group_user,1,1,1,1
+access_force_unreserve_wizard_line_user,pharmacy.force.unreserve.wizard.line user,model_pharmacy_force_unreserve_wizard_line,base.group_user,1,1,1,1
+access_transfer_confirm_wizard_user,pharmacy.transfer.confirm.wizard user,model_pharmacy_transfer_confirm_wizard,base.group_user,1,1,1,1
+access_transfer_confirm_wizard_line_user,pharmacy.transfer.confirm.wizard.line user,model_pharmacy_transfer_confirm_wizard_line,base.group_user,1,1,1,1

@@ -16,6 +16,7 @@
         'pharmacy_inventory_ops',
         'pharmacy_pos',
         'pharmacy_reports',
+        'pharmacy_stock_reservation',
     ],
 
     'data': [

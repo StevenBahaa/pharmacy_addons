@@ -1,0 +1,158 @@
+<?xml version="1.0" encoding="utf-8"?>
+<odoo>
+
+    <!--
+        STOCK PICKING VIEWS
+        ═══════════════════════════════════════════════════════════════════════
+        Odoo 18 XML IDs used:
+          · stock.view_picking_form  – picking form view
+          · stock.vpicktree          – picking list view
+
+        FIXES applied vs previous version:
+        ──────────────────────────────────
+        FIX-1  //sheet//group[1] positional selector removed.
+               Replaced with named anchor //group[@name='picking_type']
+               which is the actual first group in the Odoo 18 picking form.
+
+        FIX-2  //field[@name='move_ids_without_package']//tree replaced with
+               //field[@name='move_ids_without_package']//list
+               (Odoo 18 renamed <tree> → <list> in view arch XML).
+
+        FIX-3  Duplicate "view_picking_internal_form_pharmacy" record removed.
+               It inherited stock.view_picking_form a second time with priority=20
+               and duplicated columns already added by the first view.
+               The product_uom_qty anchor columns are now in the single picking
+               form inherit record below.
+
+        FIX-4  All <tree> tags inside arch XML replaced with <list>.
+
+        FIX-5  attrs="{}" syntax removed (deprecated/removed in Odoo 18).
+               Replaced with inline boolean domain expressions on invisible=.
+    -->
+
+    <!-- ── Picking FORM: buttons + reservation group + move columns + log tab ─ -->
+    <record id="view_picking_form_pharmacy" model="ir.ui.view">
+        <field name="name">stock.picking.form.pharmacy.reservation</field>
+        <field name="model">stock.picking</field>
+        <field name="inherit_id" ref="stock.view_picking_form"/>
+        <field name="arch" type="xml">
+
+            <!-- Buttons in header
+                 FIX-5: invisible= uses plain Python expressions (no attrs) ─── -->
+            <header position="inside">
+                <button name="action_pharmacy_check_availability_popup"
+                        type="object"
+                        string="Check Stock Availability"
+                        class="btn-secondary"
+                        invisible="state != 'draft' or picking_type_code != 'outgoing'"/>
+
+                <button name="action_pharmacy_force_unreserve"
+                        type="object"
+                        string="Force Unreserve"
+                        class="btn-warning"
+                        groups="pharmacy_stock_reservation.group_pharmacy_inventory_manager"
+                        invisible="not has_pharmacy_reservation"
+                        confirm="This will release all reservations and create an audit log entry. Continue?"/>
+            </header>
+
+            <!-- Reservation summary group
+                 FIX-1: replaced //sheet//group[1] with named group anchor ──── -->
+            <!-- <group name="picking_type" position="after">
+                <group string="Stock Reservation"
+                       name="pharmacy_reservation_group"
+                       invisible="picking_type_code != 'outgoing'">
+                    <field name="pharmacy_reservation_state"
+                           widget="badge"
+                           decoration-success="pharmacy_reservation_state == 'full'"
+                           decoration-warning="pharmacy_reservation_state == 'partial'"
+                           decoration-muted="pharmacy_reservation_state in ('none', 'released')"/>
+                    <field name="has_pharmacy_reservation" invisible="1"/>
+                </group>
+            </group> -->
+            <xpath expr="//sheet" position="inside">
+                <group string="Stock Reservation"
+                    name="pharmacy_reservation_group"
+                    invisible="picking_type_code != 'outgoing'">
+                    <field name="pharmacy_reservation_state"
+                        widget="badge"
+                        decoration-success="pharmacy_reservation_state == 'full'"
+                        decoration-warning="pharmacy_reservation_state == 'partial'"
+                        decoration-muted="pharmacy_reservation_state in ('none', 'released')"/>
+                    <field name="has_pharmacy_reservation" invisible="1"/>
+                </group>
+            </xpath>
+            <!-- Move lines: add Reserved / Available / Status columns
+                 FIX-2: //list replaces //tree inside move_ids_without_package
+                 FIX-3: product_uom_qty anchor columns also added here
+                         (removed duplicate view_picking_internal_form_pharmacy) ─ -->
+            <xpath expr="//field[@name='move_ids_without_package']//list//field[@name='product_uom_qty']"
+                   position="after">
+                <field name="pharmacy_reserved_qty"
+                       string="Reserved"
+                       optional="show"
+                       decoration-warning="pharmacy_reserved_qty &gt; 0"
+                       readonly="1"/>
+                <field name="pharmacy_available_qty"
+                       string="Available"
+                       optional="show"
+                       decoration-danger="pharmacy_available_qty &lt; product_uom_qty"
+                       decoration-success="pharmacy_available_qty &gt;= product_uom_qty"
+                       readonly="1"/>
+                <field name="pharmacy_reservation_status"
+                       string="Status"
+                       optional="show"
+                       widget="badge"
+                       decoration-success="pharmacy_reservation_status == 'available'"
+                       decoration-warning="pharmacy_reservation_status == 'reserved'"
+                       decoration-danger="pharmacy_reservation_status == 'not_enough'"
+                       readonly="1"/>
+            </xpath>
+
+            <!-- Reservation Log notebook tab ─────────────────────────────── -->
+            <notebook position="inside">
+                <page string="Reservation Log"
+                      name="pharmacy_reservation_log"
+                      invisible="picking_type_code != 'outgoing'">
+                    <field name="pharmacy_reserved_line_ids" readonly="1">
+                        <!-- FIX-4: <list> replaces <tree> ────────────────── -->
+                        <list>
+                            <field name="create_date" string="Date/Time"/>
+                            <field name="product_id"/>
+                            <field name="location_id"/>
+                            <field name="reserved_qty"/>
+                            <field name="action"
+                                   widget="badge"
+                                   decoration-info="action == 'reserve'"
+                                   decoration-success="action == 'release'"
+                                   decoration-warning="action == 'force_unreserve'"
+                                   decoration-muted="action == 'revert_draft'"/>
+                            <field name="user_id"/>
+                            <field name="notes"/>
+                        </list>
+                    </field>
+                </page>
+            </notebook>
+
+        </field>
+    </record>
+
+    <!-- ── Picking LIST: reservation state column before state ──────────────── -->
+    <record id="view_picking_tree_pharmacy" model="ir.ui.view">
+        <field name="name">stock.picking.tree.pharmacy.reservation</field>
+        <field name="model">stock.picking</field>
+        <field name="inherit_id" ref="stock.vpicktree"/>
+        <field name="arch" type="xml">
+            <!-- vpicktree in Odoo 18 has field name="state" — anchor is valid -->
+            <field name="state" position="before">
+                <field name="pharmacy_reservation_state"
+                       string="Reservation"
+                       optional="show"
+                       widget="badge"
+                       decoration-success="pharmacy_reservation_state == 'full'"
+                       decoration-warning="pharmacy_reservation_state == 'partial'"
+                       decoration-muted="pharmacy_reservation_state in ('none', 'released')"/>
+            </field>
+        </field>
+    </record>
+
+</odoo>

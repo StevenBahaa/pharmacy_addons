@@ -1,0 +1,97 @@
+<?xml version="1.0" encoding="utf-8"?>
+<odoo>
+
+    <!--
+        RESERVED STOCK REPORT
+        ═══════════════════════════════════════════════════════════════════════
+        QWeb PDF report — printable reserved stock summary.
+        Bound to stock.quant so it can be triggered from the quant list.
+
+        FIXES applied vs previous version:
+        ──────────────────────────────────
+        FIX-1  <t t-foreach="docs"> → docs is the recordset passed by the
+               report engine. In Odoo 18, for multi-record reports the template
+               should iterate once and build a full table, not one page per
+               record (which is impractical for quant reports).
+               Restructured to a single-page tabular report.
+
+        FIX-2  web.internal_layout replaced with web.html_container +
+               web.external_layout for cleaner PDF output in Odoo 18.
+               internal_layout is for internal documents; external_layout
+               adds company header/footer.
+    -->
+
+    <!-- QWeb template ──────────────────────────────────────────────────────── -->
+    <template id="report_reservation_stock_document">
+        <t t-call="web.html_container">
+            <t t-call="web.external_layout">
+                <div class="page">
+                    <h2>Reserved Stock Report</h2>
+                    <p class="text-muted">
+                        Showing <t t-esc="len(docs)"/> record(s) with active reservations.
+                    </p>
+                    <table class="table table-sm o_main_table">
+                        <thead>
+                            <tr>
+                                <th>Product</th>
+                                <th>Location</th>
+                                <th class="text-end">On Hand</th>
+                                <th class="text-end">Reserved</th>
+                                <th class="text-end">Available</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            <t t-foreach="docs" t-as="quant">
+                                <tr t-attf-class="{{ 'table-warning' if quant.pharmacy_reserved_qty > 0 else '' }}">
+                                    <td>
+                                        <t t-esc="quant.product_id.display_name"/>
+                                    </td>
+                                    <td>
+                                        <t t-esc="quant.location_id.display_name"/>
+                                    </td>
+                                    <td class="text-end">
+                                        <t t-esc="'%.2f' % quant.quantity"/>
+                                    </td>
+                                    <td class="text-end">
+                                        <strong>
+                                            <t t-esc="'%.2f' % quant.pharmacy_reserved_qty"/>
+                                        </strong>
+                                    </td>
+                                    <td class="text-end">
+                                        <t t-esc="'%.2f' % quant.pharmacy_available_qty"/>
+                                    </td>
+                                </tr>
+                            </t>
+                        </tbody>
+                        <tfoot>
+                            <tr class="table-secondary fw-bold">
+                                <td colspan="2">Total</td>
+                                <td class="text-end">
+                                    <t t-esc="'%.2f' % sum(docs.mapped('quantity'))"/>
+                                </td>
+                                <td class="text-end">
+                                    <t t-esc="'%.2f' % sum(docs.mapped('pharmacy_reserved_qty'))"/>
+                                </td>
+                                <td class="text-end">
+                                    <t t-esc="'%.2f' % sum(docs.mapped('pharmacy_available_qty'))"/>
+                                </td>
+                            </tr>
+                        </tfoot>
+                    </table>
+                </div>
+            </t>
+        </t>
+    </template>
+
+    <!-- Report action — bound to stock.quant ──────────────────────────────── -->
+    <record id="action_report_reservation_stock" model="ir.actions.report">
+        <field name="name">Reserved Stock Report</field>
+        <field name="model">stock.quant</field>
+        <field name="report_type">qweb-pdf</field>
+        <field name="report_name">pharmacy_stock_reservation.report_reservation_stock_document</field>
+        <field name="report_file">pharmacy_stock_reservation.report_reservation_stock_document</field>
+        <field name="binding_model_id" ref="stock.model_stock_quant"/>
+        <field name="binding_type">report</field>
+    </record>
+
+</odoo>

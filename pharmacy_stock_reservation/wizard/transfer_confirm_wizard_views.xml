@@ -1,0 +1,82 @@
+<?xml version="1.0" encoding="utf-8"?>
+<odoo>
+    <!--
+        TRANSFER CONFIRM WIZARD VIEW
+        ═══════════════════════════════════════════════════════════════════════
+        FIXES applied vs previous version:
+        ──────────────────────────────────
+        FIX-1  attrs="{}" syntax removed (removed in Odoo 18).
+               All invisible= conditions use plain Python-domain expressions.
+        FIX-2  <tree> replaced with <list> for the readonly lines display
+               (Odoo 18 uses <list> as the view arch tag).
+        FIX-3  decoration-* attributes moved to the <list> tag itself
+               (row-level decorations belong on the list container in Odoo 18,
+               not on individual field elements within it).
+    -->
+    <record id="view_transfer_confirm_wizard_form" model="ir.ui.view">
+        <field name="name">pharmacy.transfer.confirm.wizard.form</field>
+        <field name="model">pharmacy.transfer.confirm.wizard</field>
+        <field name="arch" type="xml">
+            <form string="Stock Availability Check">
+                <sheet>
+                    <!-- Status banner: shown conditionally via invisible= ──── -->
+                    <!-- FIX-1: no attrs, plain invisible expression -->
+                    <div class="alert alert-danger" role="alert"
+                         invisible="all_available">
+                        <strong>&#9888; Insufficient Stock</strong> —
+                        <field name="warning_message" readonly="1" nolabel="1"/>
+                    </div>
+                    <div class="alert alert-success" role="alert"
+                         invisible="not all_available">
+                        <strong>&#10003; All products available</strong> —
+                        Confirming will lock the requested quantities.
+                    </div>
+                    <group>
+                        <field name="picking_id" readonly="1"/>
+                        <field name="all_available" invisible="1"/>
+                    </group>
+                    <separator string="Product Availability per Line"/>
+                    <!-- FIX-2: <list> replaces <tree>
+                         FIX-3: decoration-* on <list> for row colouring ────── -->
+                    <field name="line_ids" readonly="1">
+                        <list decoration-danger="status == 'not_enough'"
+                              decoration-warning="status == 'reserved'"
+                              decoration-success="status == 'available'">
+                            <field name="product_id"/>
+                            <field name="location_id" string="Source"/>
+                            <field name="on_hand_qty"  string="On Hand"/>
+                            <field name="reserved_qty" string="Reserved"/>
+                            <field name="available_qty" string="Available"/>
+                            <field name="requested_qty" string="Requested"/>
+                            <field name="uom_id"        string="UoM"/>
+                            <field name="status"
+                                   widget="badge"
+                                   decoration-success="status == 'available'"
+                                   decoration-warning="status == 'reserved'"
+                                   decoration-danger="status == 'not_enough'"/>
+                        </list>
+                    </field>
+                </sheet>
+                <footer>
+                    <!-- Confirm: only when all lines are available ─────────── -->
+                    <button name="action_confirm"
+                            type="object"
+                            string="Confirm Transfer &amp; Lock Stock"
+                            class="btn-primary"
+                            invisible="not all_available"/>
+                    <!-- Force confirm: managers only, when stock is short ──── -->
+                    <button name="action_force_confirm"
+                            type="object"
+                            string="Force Confirm (Manager)"
+                            class="btn-warning"
+                            invisible="all_available"
+                            groups="pharmacy_stock_reservation.group_pharmacy_inventory_manager"
+                            confirm="Stock is insufficient for one or more lines. Force confirm anyway?"/>
+                    <button string="Cancel"
+                            class="btn-secondary"
+                            special="cancel"/>
+                </footer>
+            </form>
+        </field>
+    </record>
+</odoo>

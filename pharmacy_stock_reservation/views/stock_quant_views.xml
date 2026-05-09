@@ -1,0 +1,75 @@
+<?xml version="1.0" encoding="utf-8"?>
+<odoo>
+    <!--
+        STOCK QUANT VIEWS
+        Odoo 18 XML IDs used:
+          · stock.view_stock_quant_tree   – quant list view
+          · stock.view_stock_quant_search – quant search view
+            FIX: was "stock.product_open_quants_search" (does NOT exist in Odoo 18)
+          · stock.view_stock_quant_form   – quant form view
+
+        Odoo 18 notes:
+          · XPath on field elements does not require <tree>/<list> tags.
+          · Use <field name="X" position="after"> shorthand over full xpath
+            when the field name is unique — more robust than //field[@name='X'].
+    -->
+    <!-- 1. Quant LIST: Reserved + Available columns after quantity ─────────── -->
+    <record id="view_stock_quant_tree_pharmacy" model="ir.ui.view">
+        <field name="name">stock.quant.tree.pharmacy.reservation</field>
+        <field name="model">stock.quant</field>
+        <field name="inherit_id" ref="stock.view_stock_quant_tree"/>
+        <field name="arch" type="xml">
+            <field name="quantity" position="after">
+                <field name="pharmacy_reserved_qty"
+                       string="Reserved"
+                       optional="show"
+                       decoration-warning="pharmacy_reserved_qty &gt; 0"/>
+                <field name="pharmacy_available_qty"
+                       string="Available"
+                       optional="show"
+                       decoration-danger="pharmacy_available_qty &lt;= 0"
+                       decoration-success="pharmacy_available_qty &gt; 0"/>
+            </field>
+        </field>
+    </record>
+    <!-- 2. Quant SEARCH: Reserved Stock filter
+         FIX: Corrected inherit_id from stock.product_open_quants_search
+              (non-existent in Odoo 18) → stock.view_stock_quant_search ──────── -->
+    <!-- <record id="view_stock_quant_search_pharmacy" model="ir.ui.view">
+        <field name="name">stock.quant.search.pharmacy.reservation</field>
+        <field name="model">stock.quant</field>
+        <field name="inherit_id" ref="stock.product_search_form_view_stock_report"/>
+        <field name="arch" type="xml">
+            <search position="inside">
+                <separator/>
+                <filter string="Reserved Stock"
+                        name="filter_reserved_stock"
+                        domain="[('pharmacy_reserved_qty', '&gt;', 0)]"/>
+                <filter string="Zero Available"
+                        name="filter_zero_available"
+                        domain="[('pharmacy_available_qty', '&lt;=', 0), ('quantity', '&gt;', 0)]"/>
+                <group expand="0" string="Reservation">
+                    <filter string="Has Reservation"
+                            name="group_has_reservation"
+                            domain="[('pharmacy_reserved_qty', '&gt;', 0)]"/>
+                </group>
+            </search>
+        </field>
+    </record> -->
+    <!-- 3. Quant FORM: Reserved + Available fields after quantity ───────────── -->
+    <!-- <record id="view_stock_quant_form_pharmacy" model="ir.ui.view">
+        <field name="name">stock.quant.form.pharmacy.reservation</field>
+        <field name="model">stock.quant</field>
+        <field name="inherit_id" ref="stock.view_stock_quant_form"/>
+        <field name="arch" type="xml">
+            <field name="quantity" position="after">
+                <field name="pharmacy_reserved_qty"
+                       string="Reserved Qty"
+                       readonly="1"/>
+                <field name="pharmacy_available_qty"
+                       string="Available Qty"
+                       readonly="1"/>
+            </field>
+        </field>
+    </record> -->
+</odoo>

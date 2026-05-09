@@ -1,0 +1,91 @@
+/* pharmacy_stock_reservation/static/src/css/reservation.css */
+
+/* ─── Reservation state badge colours ───────────────────────────────────── */
+.o_field_widget .badge.o_pharmacy_reservation_full {
+    background-color: #d4edda;
+    color: #155724;
+    border: 1px solid #c3e6cb;
+}
+
+.o_field_widget .badge.o_pharmacy_reservation_partial {
+    background-color: #fff3cd;
+    color: #856404;
+    border: 1px solid #ffeeba;
+}
+
+.o_field_widget .badge.o_pharmacy_reservation_none,
+.o_field_widget .badge.o_pharmacy_reservation_released {
+    background-color: #f8f9fa;
+    color: #6c757d;
+    border: 1px solid #dee2e6;
+}
+
+/* ─── Reservation summary group on picking form ──────────────────────────── */
+.o_form_view .o_group[name="pharmacy_reservation_group"] .o_group_label {
+    font-weight: 600;
+    color: #495057;
+}
+
+/* ─── Reserved qty cell in tree views — blue highlight ──────────────────── */
+.o_list_view td.o_field_cell .o_pharmacy_reserved {
+    color: #0d6efd;
+    font-weight: 500;
+}
+
+/* ─── Available qty — green when positive, red when zero ────────────────── */
+.o_list_view td.o_field_cell .o_pharmacy_available_positive {
+    color: #198754;
+    font-weight: 500;
+}
+.o_list_view td.o_field_cell .o_pharmacy_available_zero {
+    color: #dc3545;
+    font-weight: 500;
+}
+
+/* ─── Force Unreserve button — warning styling ───────────────────────────── */
+.o_form_view .btn-warning.o_pharmacy_force_btn {
+    background-color: #fd7e14;
+    border-color: #fd7e14;
+    color: #fff;
+}
+.o_form_view .btn-warning.o_pharmacy_force_btn:hover {
+    background-color: #e8690b;
+    border-color: #e8690b;
+}
+
+/* ─── Audit log action badges ────────────────────────────────────────────── */
+.o_list_view .o_badge_cell span[data-value="reserve"] {
+    background-color: #cfe2ff;
+    color: #084298;
+}
+.o_list_view .o_badge_cell span[data-value="release"] {
+    background-color: #d1e7dd;
+    color: #0a3622;
+}
+.o_list_view .o_badge_cell span[data-value="force_unreserve"] {
+    background-color: #fff3cd;
+    color: #664d03;
+}
+.o_list_view .o_badge_cell span[data-value="revert_draft"] {
+    background-color: #e2e3e5;
+    color: #41464b;
+}
+
+/* ─── Wizard: availability status badges ────────────────────────────────── */
+.o_dialog .o_badge_cell span[data-value="available"] {
+    background-color: #d1e7dd;
+    color: #0a3622;
+}
+.o_dialog .o_badge_cell span[data-value="reserved"] {
+    background-color: #fff3cd;
+    color: #664d03;
+}
+.o_dialog .o_badge_cell span[data-value="not_enough"] {
+    background-color: #f8d7da;
+    color: #842029;
+}
+
+/* ─── Product form: reservation tab styling ─────────────────────────────── */
+.o_form_view .o_notebook .nav-link[name="pharmacy_stock_reservation"] {
+    font-weight: 500;
+}

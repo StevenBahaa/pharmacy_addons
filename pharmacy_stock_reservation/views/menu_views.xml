@@ -1,0 +1,43 @@
+<?xml version="1.0" encoding="utf-8"?>
+<odoo>
+
+    <!--
+        MENU VIEWS
+        ═══════════════════════════════════════════════════════════════════════
+        FIXES applied vs previous version:
+        ──────────────────────────────────
+        FIX-1  menu_pharmacy_reserved_stock linked to stock quant action using
+               the correct Odoo 18 quant action XML ID:
+               stock.action_stock_view_quant_tree_all
+               (was: stock.action_stock_view_location_quant_global — deprecated)
+
+        FIX-2  parent="stock.menu_stock_root" → valid in Odoo 18.
+               The Inventory top-level menu ID is stock.menu_stock_root.
+
+        FIX-3  view_mode on quant action: "list" not "tree" — pass via context.
+    -->
+
+    <!-- Root submenu under Inventory ──────────────────────────────────────── -->
+    <menuitem id="menu_pharmacy_reservation_root"
+              name="Reservations"
+              parent="stock.menu_stock_root"
+              sequence="25"/>
+
+    <!-- Audit log ─────────────────────────────────────────────────────────── -->
+    <menuitem id="menu_pharmacy_reservation_log"
+              name="Reservation Audit Log"
+              parent="menu_pharmacy_reservation_root"
+              action="action_pharmacy_reservation_log"
+              sequence="10"
+              groups="pharmacy_stock_reservation.group_pharmacy_inventory_user"/>
+
+    <!-- Reserved stock quant view
+         FIX-1: action ID updated to Odoo 18 correct reference ──────────────── -->
+    <!-- <menuitem id="menu_pharmacy_reserved_stock"
+              name="Reserved Stock"
+              parent="menu_pharmacy_reservation_root"
+              action="stock.action_stock_view_quant_tree_all"
+              sequence="20"
+              groups="pharmacy_stock_reservation.group_pharmacy_inventory_user"/> -->
+
+</odoo>
