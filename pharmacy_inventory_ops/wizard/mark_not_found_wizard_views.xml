@@ -1,0 +1,41 @@
+<?xml version="1.0" encoding="utf-8"?>
+<odoo>
+
+    <record id="view_pharmacy_count_not_found_wizard_form" model="ir.ui.view">
+        <field name="name">pharmacy.count.not.found.wizard.form</field>
+        <field name="model">pharmacy.count.not.found.wizard</field>
+        <field name="arch" type="xml">
+            <form string="Mark Products as Not Found">
+                <group>
+                    <field name="count_id" readonly="1"/>
+                    <field name="reason" required="1"
+                           placeholder="Explain why these products were not found…"/>
+                </group>
+                <field name="line_ids" widget="many2many"
+                       domain="[('count_id','=',count_id),('counted_status','not in',['counted','not_found'])]">
+                    <list>
+                        <field name="product_id"/>
+                        <field name="location_id"/>
+                        <field name="expected_qty"/>
+                        <field name="counted_status"/>
+                    </list>
+                </field>
+                <footer>
+                    <button name="action_confirm"
+                            string="Mark as Not Found"
+                            type="object"
+                            class="btn-primary"/>
+                    <button string="Cancel" class="btn-secondary" special="cancel"/>
+                </footer>
+            </form>
+        </field>
+    </record>
+
+    <record id="action_pharmacy_count_not_found_wizard" model="ir.actions.act_window">
+        <field name="name">Mark as Not Found</field>
+        <field name="res_model">pharmacy.count.not.found.wizard</field>
+        <field name="view_mode">form</field>
+        <field name="target">new</field>
+    </record>
+
+</odoo>

@@ -1,0 +1,18 @@
+<?xml version="1.0" encoding="utf-8"?>
+<odoo>
+    <record id="seq_pharmacy_count_daily" model="ir.sequence">
+        <field name="name">Pharmacy Daily Count</field>
+        <field name="code">pharmacy.count.daily</field>
+        <field name="prefix">PHC-DAILY/%(year)s/</field>
+        <field name="padding">4</field>
+        <field name="company_id" eval="False"/>
+    </record>
+
+    <record id="seq_pharmacy_count_periodic" model="ir.sequence">
+        <field name="name">Pharmacy Periodic Count</field>
+        <field name="code">pharmacy.count.periodic</field>
+        <field name="prefix">PHC-PERD/%(year)s/</field>
+        <field name="padding">4</field>
+        <field name="company_id" eval="False"/>
+    </record>
+</odoo>

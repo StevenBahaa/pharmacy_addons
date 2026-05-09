@@ -1,0 +1,47 @@
+<?xml version="1.0" encoding="utf-8"?>
+<odoo>
+
+    <record id="view_pharmacy_count_line_list" model="ir.ui.view">
+        <field name="name">pharmacy.count.line.list</field>
+        <field name="model">pharmacy.count.line</field>
+        <field name="arch" type="xml">
+            <list string="Count Lines"
+                  decoration-warning="counted_status == 'counted' and difference != 0"
+                  decoration-success="counted_status == 'counted' and difference == 0"
+                  decoration-danger="counted_status == 'not_found'">
+                <field name="count_id"/>
+                <field name="product_internal_ref"/>
+                <field name="product_id"/>
+                <field name="location_id"/>
+                <field name="expected_qty"/>
+                <field name="counted_qty"/>
+                <field name="difference"/>
+                <field name="difference_value"/>
+                <field name="reason"/>
+                <field name="counted_status" widget="badge"
+                       decoration-success="counted_status == 'counted'"
+                       decoration-warning="counted_status == 'in_progress'"
+                       decoration-danger="counted_status == 'not_found'"/>
+            </list>
+        </field>
+    </record>
+
+    <record id="view_pharmacy_count_line_search" model="ir.ui.view">
+        <field name="name">pharmacy.count.line.search</field>
+        <field name="model">pharmacy.count.line</field>
+        <field name="arch" type="xml">
+            <search string="Search Lines">
+                <field name="product_id"/>
+                <field name="count_id"/>
+                <separator/>
+                <filter name="filter_discrepancy" string="Has Discrepancy"
+                        domain="[('difference', '!=', 0), ('counted_status', '=', 'counted')]"/>
+                <filter name="filter_not_counted" string="Not Yet Counted"
+                        domain="[('counted_status', '=', 'not_started')]"/>
+                <filter name="filter_not_found" string="Not Found"
+                        domain="[('counted_status', '=', 'not_found')]"/>
+            </search>
+        </field>
+    </record>
+
+</odoo>

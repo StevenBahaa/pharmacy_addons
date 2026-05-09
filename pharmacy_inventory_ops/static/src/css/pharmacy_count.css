@@ -1,0 +1,51 @@
+/* =========================================================
+   Pharmacy Inventory Count — custom styles
+   ========================================================= */
+
+/* Barcode scanner row */
+.pharmacy-barcode-row {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    padding: 8px 0;
+}
+
+.pharmacy-barcode-input {
+    max-width: 280px;
+    font-family: monospace;
+    font-size: 14px;
+}
+
+/* Highlighted row when barcode scan matches */
+.o_data_row.pharmacy-highlighted td {
+    background-color: #fff3cd !important;
+    transition: background-color 0.4s ease;
+    font-weight: 600;
+}
+
+/* Progress bar color overrides */
+.o_progressbar .o_progressbar_value {
+    background-color: #28a745;
+}
+
+/* Status badge tweaks */
+.badge.o_field_badge[data-value="not_started"] {
+    background-color: #6c757d !important;
+}
+.badge.o_field_badge[data-value="in_progress"] {
+    background-color: #fd7e14 !important;
+}
+.badge.o_field_badge[data-value="counted"] {
+    background-color: #198754 !important;
+}
+.badge.o_field_badge[data-value="not_found"] {
+    background-color: #dc3545 !important;
+}
+
+/* Summary panel */
+.pharmacy-summary-panel {
+    background: #f8f9fa;
+    border-radius: 6px;
+    padding: 12px 16px;
+    margin-bottom: 12px;
+}

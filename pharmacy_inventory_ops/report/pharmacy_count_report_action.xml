@@ -1,0 +1,16 @@
+<?xml version="1.0" encoding="utf-8"?>
+<odoo>
+
+    <record id="action_report_pharmacy_count" model="ir.actions.report">
+        <field name="name">Pharmacy Inventory Count Report</field>
+        <field name="model">pharmacy.count</field>
+        <field name="report_type">qweb-pdf</field>
+        <field name="report_name">pharmacy_inventory_ops.report_pharmacy_count_template</field>
+        <field name="report_file">pharmacy_inventory_ops.report_pharmacy_count_template</field>
+        <field name="paperformat_id" ref="pharmacy_count_paper_format"/>
+        <field name="binding_model_id" ref="model_pharmacy_count"/>
+        <field name="binding_type">report</field>
+    </record>
+
+</odoo>
+

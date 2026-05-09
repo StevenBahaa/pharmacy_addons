@@ -1,0 +1,312 @@
+<?xml version="1.0" encoding="utf-8"?>
+<odoo>
+
+    <!-- ================================================================ -->
+    <!-- FORM VIEW                                                         -->
+    <!-- ================================================================ -->
+    <record id="view_pharmacy_count_form" model="ir.ui.view">
+        <field name="name">pharmacy.count.form</field>
+        <field name="model">pharmacy.count</field>
+        <field name="arch" type="xml">
+            <form string="Pharmacy Inventory Count">
+                <header>
+                    <button name="action_start"
+                            string="Start Count"
+                            type="object"
+                            class="btn-primary"
+                            invisible="state != 'draft'"/>
+                    <button name="action_validate"
+                            string="Validate Count"
+                            type="object"
+                            class="btn-primary"
+                            invisible="state not in ('draft', 'in_progress')"
+                            confirm="Are you sure you want to validate this count? Inventory will be updated immediately."/>
+                    <button name="action_cancel"
+                            string="Cancel"
+                            type="object"
+                            invisible="state in ('done', 'cancelled')"/>
+                    <button name="action_reset_draft"
+                            string="Reset to Draft"
+                            type="object"
+                            invisible="state not in ('cancelled', 'in_progress')"/>
+                    <button name="action_print_count_report"
+                            string="Print Report"
+                            type="object"
+                            invisible="state != 'done'"/>
+                    <button name="action_export_discrepancy_excel"
+                            string="Export Discrepancy (Excel)"
+                            type="object"
+                            invisible="state != 'done'"/>
+                    <field name="state"
+                           widget="statusbar"
+                           statusbar_visible="draft,in_progress,done"/>
+                </header>
+
+                <sheet>
+                    <!-- Smart buttons -->
+                    <div class="oe_button_box" name="button_box">
+                        <button name="action_view_discrepancy_lines"
+                                type="object"
+                                class="oe_stat_button"
+                                icon="fa-exclamation-triangle"
+                                invisible="discrepancy_lines == 0">
+                            <div class="o_stat_info">
+                                <span class="o_stat_value">
+                                    <field name="discrepancy_lines"/>
+                                </span>
+                                <span class="o_stat_text">Discrepancies</span>
+                            </div>
+                        </button>
+                    </div>
+
+                    <div class="oe_title">
+                        <h1>
+                            <field name="name" readonly="1"/>
+                        </h1>
+                    </div>
+
+                    <group>
+                        <group string="Count Details">
+                            <field name="count_type"
+                                   readonly="state in ('done','cancelled')"/>
+                            <field name="count_date"
+                                   readonly="state in ('done','cancelled')"/>
+                            <field name="responsible_id"
+                                   readonly="state in ('done','cancelled')"/>
+                            <field name="company_id"
+                                   groups="base.group_multi_company"
+                                   readonly="state in ('done','cancelled')"/>
+                        </group>
+                        <group string="Scope">
+                            <field name="warehouse_id"
+                                   readonly="state in ('done','cancelled')"/>
+                            <field name="location_id"
+                                   readonly="state in ('done','cancelled')"/>
+                            <field name="category_id"
+                                   readonly="state in ('done','cancelled')"/>
+                        </group>
+                    </group>
+
+                    <!-- Summary banner (periodic only) -->
+                    <group string="Count Progress"
+                           invisible="count_type != 'periodic'">
+                        <group>
+                            <field name="total_lines" readonly="1"/>
+                            <field name="counted_lines" readonly="1"/>
+                        </group>
+                        <group>
+                            <field name="not_counted_lines" readonly="1"/>
+                            <field name="discrepancy_lines" readonly="1"/>
+                        </group>
+                        <div colspan="2">
+                            <field name="count_progress"
+                                   widget="progressbar"
+                                   options="{'editable': false}"
+                                   readonly="1"/>
+                        </div>
+                    </group>
+
+                    <!-- Barcode scanner input (periodic only) -->
+                    <!-- <group invisible="count_type != 'periodic' or state not in ('draft','in_progress')">
+                        <div class="pharmacy-barcode-row">
+                            <label for="barcode_input" string="Scan Barcode"/>
+                            <input id="barcode_input"
+                                   class="o_input pharmacy-barcode-input"
+                                   type="text"
+                                   placeholder="Scan or type barcode here…"/>
+                            <button name="action_barcode_scan" class="btn btn-secondary pharmacy-barcode-btn ms-2" string="Go" type="object"/>
+                        </div>
+                    </group> -->
+                    <!-- Barcode scanner input (periodic only) -->
+                    <group invisible="count_type != 'periodic' or state not in ('draft','in_progress')">
+                        <div class="pharmacy-barcode-row">
+                            <field name="barcode_scan_input"
+                                string="Scan Barcode"
+                                placeholder="Scan or type barcode here…"
+                                nolabel="0"/>
+                            <button name="action_barcode_scan"
+                                    string="Go"
+                                    type="object"
+                                    class="btn btn-secondary ms-2"
+                                    icon="fa-barcode"/>
+                        </div>
+                    </group>
+                    <!-- Count lines -->
+                    <field name="line_ids"
+                           widget="one2many"
+                           readonly="state in ('done','cancelled')"
+                           context="{'default_count_id': id}">
+                        <list string="Products to Count"
+                              editable="bottom"
+                              decoration-success="counted_status == 'counted' and difference == 0"
+                              decoration-warning="counted_status == 'counted' and difference != 0"
+                              decoration-danger="counted_status == 'not_found'"
+                              decoration-muted="counted_status == 'not_started'">
+                            <field name="sequence" widget="handle"/>
+                            <field name="product_internal_ref" optional="show" readonly="1"/>
+                            <field name="product_id" readonly="state in ('done','cancelled')"/>
+                            <field name="product_barcode" optional="hide" readonly="1"/>
+                            <field name="location_id" optional="show"/>
+                            <field name="product_uom_id" optional="show" readonly="1"/>
+                            <field name="expected_qty" readonly="1"/>
+                            <field name="counted_qty"/>
+                            <field name="difference" readonly="1"/>
+                            <field name="difference_value" optional="show" readonly="1"/>
+                            <field name="counted_status" widget="badge"
+                                   decoration-success="counted_status == 'counted'"
+                                   decoration-warning="counted_status == 'in_progress'"
+                                   decoration-danger="counted_status == 'not_found'"
+                                   decoration-muted="counted_status == 'not_started'"/>
+                            <field name="reason" optional="show"/>
+                            <button name="action_mark_not_found"
+                                    type="object"
+                                    icon="fa-times-circle"
+                                    string="Not Found"
+                                    title="Mark as Not Found"
+                                    invisible="counted_status in ('counted','not_found')"/>
+                            <button name="action_reset_line"
+                                    type="object"
+                                    icon="fa-refresh"
+                                    string="Reset"
+                                    title="Reset line"
+                                    invisible="counted_status == 'not_started'"/>
+                            <!-- hidden fields needed by JS -->
+                            <field name="is_highlighted" column_invisible="True" decoration-info="is_highlighted == True"/>
+                        </list>
+                        <form string="Count Line">
+                            <group>
+                                <group>
+                                    <field name="product_id"/>
+                                    <field name="product_internal_ref" readonly="1"/>
+                                    <field name="location_id"/>
+                                    <field name="product_uom_id" readonly="1"/>
+                                </group>
+                                <group>
+                                    <field name="expected_qty" readonly="1"/>
+                                    <field name="counted_qty"/>
+                                    <field name="difference" readonly="1"/>
+                                    <field name="difference_value" readonly="1"/>
+                                    <field name="counted_status"/>
+                                </group>
+                            </group>
+                            <group string="Reason (required if difference ≠ 0)">
+                                <field name="reason" nolabel="1"
+                                       placeholder="Explain the discrepancy…"/>
+                            </group>
+                        </form>
+                    </field>
+
+                    <group string="Notes">
+                        <field name="notes" nolabel="1" placeholder="Internal notes…"/>
+                    </group>
+                </sheet>
+
+                <chatter/>
+            </form>
+        </field>
+    </record>
+
+    <!-- ================================================================ -->
+    <!-- LIST VIEW                                                         -->
+    <!-- ================================================================ -->
+    <record id="view_pharmacy_count_list" model="ir.ui.view">
+        <field name="name">pharmacy.count.list</field>
+        <field name="model">pharmacy.count</field>
+        <field name="arch" type="xml">
+            <list string="Pharmacy Counts"
+                  decoration-success="state == 'done'"
+                  decoration-warning="state == 'in_progress'"
+                  decoration-muted="state == 'cancelled'">
+                <field name="name"/>
+                <field name="count_type"/>
+                <field name="count_date"/>
+                <field name="warehouse_id"/>
+                <field name="responsible_id"/>
+                <field name="total_lines"/>
+                <field name="counted_lines"/>
+                <field name="discrepancy_lines"/>
+                <field name="state" widget="badge"
+                       decoration-success="state == 'done'"
+                       decoration-warning="state == 'in_progress'"
+                       decoration-info="state == 'draft'"
+                       decoration-danger="state == 'cancelled'"/>
+            </list>
+        </field>
+    </record>
+
+    <!-- ================================================================ -->
+    <!-- SEARCH VIEW                                                       -->
+    <!-- ================================================================ -->
+    <record id="view_pharmacy_count_search" model="ir.ui.view">
+        <field name="name">pharmacy.count.search</field>
+        <field name="model">pharmacy.count</field>
+        <field name="arch" type="xml">
+            <search string="Search Counts">
+                <field name="name"/>
+                <field name="warehouse_id"/>
+                <field name="responsible_id"/>
+                <separator/>
+                <filter name="filter_daily" string="Daily Spot-Check"
+                        domain="[('count_type','=','daily')]"/>
+                <filter name="filter_periodic" string="Periodic Full Count"
+                        domain="[('count_type','=','periodic')]"/>
+                <separator/>
+                <filter name="filter_draft" string="Draft"
+                        domain="[('state','=','draft')]"/>
+                <filter name="filter_in_progress" string="In Progress"
+                        domain="[('state','=','in_progress')]"/>
+                <filter name="filter_done" string="Validated"
+                        domain="[('state','=','done')]"/>
+                <separator/>
+                <filter name="filter_today" string="Today"
+                        domain="[('count_date','=', context_today().strftime('%Y-%m-%d'))]"/>
+                <group expand="1" string="Group By">
+                    <filter name="group_type" string="Count Type"
+                            context="{'group_by': 'count_type'}"/>
+                    <filter name="group_state" string="Status"
+                            context="{'group_by': 'state'}"/>
+                    <filter name="group_warehouse" string="Warehouse"
+                            context="{'group_by': 'warehouse_id'}"/>
+                    <filter name="group_date" string="Count Date"
+                            context="{'group_by': 'count_date:month'}"/>
+                </group>
+            </search>
+        </field>
+    </record>
+
+    <!-- ================================================================ -->
+    <!-- ACTIONS                                                           -->
+    <!-- ================================================================ -->
+    <record id="action_pharmacy_count" model="ir.actions.act_window">
+        <field name="name">Inventory Counts</field>
+        <field name="res_model">pharmacy.count</field>
+        <field name="view_mode">list,form</field>
+        <field name="context">{'search_default_filter_in_progress': 1}</field>
+        <field name="help" type="html">
+            <p class="o_view_nocontent_smiling_face">
+                No inventory counts yet!
+            </p>
+            <p>
+                Create a new <b>Daily Spot-Check</b> or start a
+                <b>Periodic Full Count</b> using the wizard.
+            </p>
+        </field>
+    </record>
+
+    <record id="action_pharmacy_count_daily" model="ir.actions.act_window">
+        <field name="name">Daily Spot-Checks</field>
+        <field name="res_model">pharmacy.count</field>
+        <field name="view_mode">list,form</field>
+        <field name="domain">[('count_type', '=', 'daily')]</field>
+        <field name="context">{'default_count_type': 'daily'}</field>
+    </record>
+
+    <record id="action_pharmacy_count_periodic" model="ir.actions.act_window">
+        <field name="name">Periodic Full Counts</field>
+        <field name="res_model">pharmacy.count</field>
+        <field name="view_mode">list,form</field>
+        <field name="domain">[('count_type', '=', 'periodic')]</field>
+        <field name="context">{'default_count_type': 'periodic'}</field>
+    </record>
+
+</odoo>

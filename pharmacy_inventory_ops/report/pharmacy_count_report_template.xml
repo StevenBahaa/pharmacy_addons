@@ -1,0 +1,254 @@
+<?xml version="1.0" encoding="utf-8"?>
+<odoo>
+
+    <!-- ================================================================ -->
+    <!-- PAPER FORMAT                                                       -->
+    <!-- ================================================================ -->
+    <record id="pharmacy_count_paper_format" model="report.paperformat">
+        <field name="name">Pharmacy Count A4</field>
+        <field name="default" eval="False"/>
+        <field name="format">A4</field>
+        <field name="page_height">0</field>
+        <field name="page_width">0</field>
+        <field name="orientation">Landscape</field>
+        <field name="margin_top">15</field>
+        <field name="margin_bottom">15</field>
+        <field name="margin_left">10</field>
+        <field name="margin_right">10</field>
+        <field name="header_line" eval="False"/>
+        <field name="header_spacing">10</field>
+        <field name="dpi">90</field>
+    </record>
+
+    <!-- ================================================================ -->
+    <!-- MAIN REPORT TEMPLATE                                              -->
+    <!-- ================================================================ -->
+    <template id="report_pharmacy_count_template">
+        <t t-call="web.html_container">
+            <t t-foreach="docs" t-as="doc">
+                <t t-call="web.external_layout">
+                    <div class="page">
+
+                        <!-- Header -->
+                        <div class="row mb-4">
+                            <div class="col-8">
+                                <h2>
+                                    Pharmacy Inventory Count —
+                                    <span t-if="doc.count_type == 'daily'">Daily Spot-Check</span>
+                                    <span t-if="doc.count_type == 'periodic'">Periodic Full Count</span>
+                                </h2>
+                                <p class="text-muted mb-0">
+                                    Reference: <strong t-field="doc.name"/>
+                                </p>
+                            </div>
+                            <div class="col-4 text-end">
+                                <p class="mb-0">
+                                    Date: <strong t-field="doc.count_date"/>
+                                </p>
+                                <p class="mb-0">
+                                    Responsible: <strong t-field="doc.responsible_id"/>
+                                </p>
+                                <p class="mb-0" t-if="doc.warehouse_id">
+                                    Warehouse: <strong t-field="doc.warehouse_id"/>
+                                </p>
+                            </div>
+                        </div>
+
+                        <!-- Summary box -->
+                        <div class="row mb-4"
+                             t-if="doc.count_type == 'periodic'">
+                            <div class="col-12">
+                                <table class="table table-bordered table-sm"
+                                       style="width:auto">
+                                    <thead class="table-dark">
+                                        <tr>
+                                            <th>Total Products</th>
+                                            <th>Counted</th>
+                                            <th>Not Yet Counted</th>
+                                            <th>With Discrepancy</th>
+                                            <th>Progress</th>
+                                        </tr>
+                                    </thead>
+                                    <tbody>
+                                        <tr>
+                                            <td class="text-center">
+                                                <t t-out="doc.total_lines"/>
+                                            </td>
+                                            <td class="text-center text-success fw-bold">
+                                                <t t-out="doc.counted_lines"/>
+                                            </td>
+                                            <td class="text-center text-warning fw-bold">
+                                                <t t-out="doc.not_counted_lines"/>
+                                            </td>
+                                            <td class="text-center text-danger fw-bold">
+                                                <t t-out="doc.discrepancy_lines"/>
+                                            </td>
+                                            <td class="text-center">
+                                                <t t-out="'%.1f' % doc.count_progress"/>%
+                                            </td>
+                                        </tr>
+                                    </tbody>
+                                </table>
+                            </div>
+                        </div>
+
+                        <!-- ============================================= -->
+                        <!-- ALL LINES TABLE                               -->
+                        <!-- ============================================= -->
+                        <h4>Complete Count Lines</h4>
+                        <table class="table table-sm table-bordered">
+                            <thead class="table-secondary">
+                                <tr>
+                                    <th>#</th>
+                                    <th>Internal Ref</th>
+                                    <th>Product</th>
+                                    <th>Location</th>
+                                    <th>UoM</th>
+                                    <th class="text-end">Expected Qty</th>
+                                    <th class="text-end">Counted Qty</th>
+                                    <th class="text-end">Difference</th>
+                                    <th>Status</th>
+                                    <th>Reason</th>
+                                </tr>
+                            </thead>
+                            <tbody>
+                                <t t-foreach="doc.line_ids" t-as="line">
+                                    <tr t-attf-class="#{
+                                        'table-danger' if line.counted_status == 'not_found'
+                                        else ('table-warning' if line.difference != 0 and line.counted_status == 'counted'
+                                        else ('table-success' if line.counted_status == 'counted'
+                                        else ''))
+                                    }">
+                                        <td><t t-out="line_index + 1"/></td>
+                                        <td><t t-out="line.product_internal_ref or ''"/></td>
+                                        <td>
+                                            <span t-field="line.product_id"/>
+                                        </td>
+                                        <td>
+                                            <span t-field="line.location_id"/>
+                                        </td>
+                                        <td>
+                                            <span t-field="line.product_uom_id"/>
+                                        </td>
+                                        <td class="text-end">
+                                            <span t-field="line.expected_qty"/>
+                                        </td>
+                                        <td class="text-end">
+                                            <t t-if="line.counted_qty is not False">
+                                                <span t-field="line.counted_qty"/>
+                                            </t>
+                                            <t t-else="">—</t>
+                                        </td>
+                                        <td class="text-end"
+                                            t-attf-style="#{
+                                                'color:red;font-weight:bold' if line.difference != 0 else ''
+                                            }">
+                                            <t t-if="line.counted_status == 'counted'">
+                                                <span t-field="line.difference"/>
+                                            </t>
+                                            <t t-else="">—</t>
+                                        </td>
+                                        <td>
+                                            <t t-out="dict(
+                                                not_started='Not Started',
+                                                in_progress='In Progress',
+                                                counted='Counted',
+                                                not_found='Not Found',
+                                            ).get(line.counted_status, line.counted_status)"/>
+                                        </td>
+                                        <td>
+                                            <t t-out="line.reason or ''"/>
+                                        </td>
+                                    </tr>
+                                </t>
+                            </tbody>
+                        </table>
+
+                        <!-- ============================================= -->
+                        <!-- DISCREPANCY SECTION                           -->
+                        <!-- ============================================= -->
+                        <t t-set="discrepancy_lines"
+                           t-value="doc.line_ids.filtered(lambda l: l.counted_status == 'counted' and l.difference != 0)"/>
+                        <t t-if="discrepancy_lines">
+                            <div class="page_break"/>
+                            <h4 style="color:#c0392b">Discrepancy Report</h4>
+                            <table class="table table-sm table-bordered">
+                                <thead class="table-danger">
+                                    <tr>
+                                        <th>Internal Ref</th>
+                                        <th>Product</th>
+                                        <th>Location</th>
+                                        <th class="text-end">Expected</th>
+                                        <th class="text-end">Counted</th>
+                                        <th class="text-end">Difference</th>
+                                        <th class="text-end">Value of Diff</th>
+                                        <th>Reason</th>
+                                    </tr>
+                                </thead>
+                                <tbody>
+                                    <t t-foreach="discrepancy_lines" t-as="line">
+                                        <tr>
+                                            <td><t t-out="line.product_internal_ref or ''"/></td>
+                                            <td><span t-field="line.product_id"/></td>
+                                            <td><span t-field="line.location_id"/></td>
+                                            <td class="text-end">
+                                                <span t-field="line.expected_qty"/>
+                                            </td>
+                                            <td class="text-end">
+                                                <span t-field="line.counted_qty"/>
+                                            </td>
+                                            <td class="text-end fw-bold"
+                                                t-attf-style="color:#{
+                                                    'red' if line.difference &lt; 0 else 'green'
+                                                }">
+                                                <span t-field="line.difference"/>
+                                            </td>
+                                            <td class="text-end">
+                                                <span t-field="line.difference_value"/>
+                                            </td>
+                                            <td><t t-out="line.reason or ''"/></td>
+                                        </tr>
+                                    </t>
+                                </tbody>
+                                <!-- Totals row -->
+                                <tfoot class="table-secondary fw-bold">
+                                    <tr>
+                                        <td colspan="6" class="text-end">Total Value of Discrepancies:</td>
+                                        <td class="text-end">
+                                            <t t-out="doc.env['ir.qweb.field.monetary'].value_to_html(
+                                                sum(discrepancy_lines.mapped('difference_value')),
+                                                {'display_currency': doc.company_id.currency_id}
+                                            )"/>
+                                        </td>
+                                        <td/>
+                                    </tr>
+                                </tfoot>
+                            </table>
+                        </t>
+
+                        <!-- Signatures -->
+                        <div class="row mt-5">
+                            <div class="col-4 text-center">
+                                <div style="border-top:1px solid #000;padding-top:4px">
+                                    Counted by
+                                </div>
+                            </div>
+                            <div class="col-4 text-center">
+                                <div style="border-top:1px solid #000;padding-top:4px">
+                                    Verified by
+                                </div>
+                            </div>
+                            <div class="col-4 text-center">
+                                <div style="border-top:1px solid #000;padding-top:4px">
+                                    Approved by
+                                </div>
+                            </div>
+                        </div>
+
+                    </div>
+                </t>
+            </t>
+        </t>
+    </template>
+
+</odoo>

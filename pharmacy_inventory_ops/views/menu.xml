@@ -1,0 +1,35 @@
+<?xml version="1.0" encoding="utf-8"?>
+<odoo>
+
+    <!-- Root menu under Inventory > Operations -->
+    <menuitem id="menu_pharmacy_count_root"
+              name="Pharmacy Counts"
+              parent="stock.menu_stock_inventory_control"
+              sequence="25"/>
+
+    <menuitem id="menu_pharmacy_count_all"
+              name="All Counts"
+              parent="menu_pharmacy_count_root"
+              action="action_pharmacy_count"
+              sequence="10"/>
+
+    <menuitem id="menu_pharmacy_count_daily"
+              name="Daily Spot-Checks"
+              parent="menu_pharmacy_count_root"
+              action="action_pharmacy_count_daily"
+              sequence="20"/>
+
+    <menuitem id="menu_pharmacy_count_periodic"
+              name="Periodic Full Counts"
+              parent="menu_pharmacy_count_root"
+              action="action_pharmacy_count_periodic"
+              sequence="30"/>
+
+    <menuitem id="menu_pharmacy_count_new_periodic"
+              name="New Periodic Count (Wizard)"
+              parent="menu_pharmacy_count_root"
+              action="action_pharmacy_count_wizard"
+              sequence="40"
+              groups="stock.group_stock_manager"/>
+
+</odoo>
