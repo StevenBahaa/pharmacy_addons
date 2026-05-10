@@ -15,8 +15,10 @@
         'pharmacy_purchase',
         'pharmacy_inventory_ops',
         'pharmacy_pos',
+        'pharmacy_wishlist',
         'pharmacy_reports',
         'pharmacy_stock_reservation',
+        'pharmacy_inventory_advanced',
         'sale_stock_restrict',
     ],
 

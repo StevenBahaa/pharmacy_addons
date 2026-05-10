@@ -1,0 +1,42 @@
+<?xml version="1.0" encoding="utf-8"?>
+<odoo>
+
+    <record id="view_product_forecast_list_inherit" model="ir.ui.view">
+        <field name="name">product.product.forecast.list</field>
+        <field name="model">product.product</field>
+        <field name="arch" type="xml">
+            <list string="Consumption Forecast" 
+                  decoration-danger="coverage_ratio &lt; 50"
+                  decoration-warning="coverage_ratio &gt;= 50 and coverage_ratio &lt; 100">
+
+                <field name="name"/>
+                <field name="qty_available"/>
+                <field name="monthly_avg_consumption"/>
+                <field name="forecast_need_3m"/>
+                <field name="coverage_ratio" widget="percentage"/>
+
+                <button name="action_create_purchase_order" 
+                        string="Order Now" 
+                        type="object" 
+                        icon="fa-shopping-cart" 
+                        title="Create Purchase Order"
+                        class="btn-primary"
+                        invisible="forecast_need_3m &lt;= qty_available"/>
+            </list>
+        </field>
+    </record>
+
+    <record id="action_pharmacy_forecast" model="ir.actions.act_window">
+        <field name="name">Consumption Forecast</field>
+        <field name="res_model">product.product</field>
+        <field name="view_mode">list</field>
+        <field name="view_id" ref="view_product_forecast_list_inherit"/>
+    </record>
+
+    <menuitem id="menu_pharmacy_forecast" 
+              name="Consumption Forecast" 
+              parent="stock.menu_warehouse_report" 
+              action="action_pharmacy_forecast" 
+              sequence="20"/>
+
+</odoo>

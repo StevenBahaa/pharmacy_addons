@@ -1,0 +1,3 @@
+id,name,model_id:id,group_id:id,perm_read,perm_write,perm_create,perm_unlink
+access_bulk_scrap,pharmacy.bulk.scrap,model_pharmacy_bulk_scrap,,1,1,1,1
+access_bulk_scrap_line,pharmacy.bulk.scrap.line,model_pharmacy_bulk_scrap_line,,1,1,1,1
