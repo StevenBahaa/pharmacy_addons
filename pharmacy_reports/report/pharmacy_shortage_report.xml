@@ -6,8 +6,6 @@
         <field name="report_type">xlsx</field>
         <field name="report_name">pharmacy_reports.shortage_report_xlsx</field>
         <field name="report_file">pharmacy_shortage</field>
-        <field name="print_report_name">'pharmacy_shortage'</field>
-        <field name="binding_model_id" ref="pharmacy_inventory_ops.model_pharmacy_shortage_line" />
-        <field name="binding_type">report</field>
+        <field name="print_report_name">'shortage_list_' + time.strftime('%Y-%m-%d_%H-%M')</field>
     </record>
 </odoo>

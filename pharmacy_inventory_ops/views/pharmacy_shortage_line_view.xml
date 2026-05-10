@@ -1,13 +1,48 @@
 <?xml version="1.0" encoding="UTF-8"?>
 <odoo>
+    <record id="pharmacy_shortage_rfq_wizard_view_form" model="ir.ui.view">
+        <field name="name">pharmacy.shortage.rfq.wizard.form</field>
+        <field name="model">pharmacy.shortage.rfq.wizard</field>
+        <field name="arch" type="xml">
+            <form string="Duplicate Procurement Warning">
+                <field name="multi_line_ids" invisible="1"/>
+                
+                <div class="alert alert-warning" role="alert" invisible="not multi_line_ids">
+                    <field name="warning_message" readonly="1" />
+                </div>
+                
+                <div class="alert alert-warning" role="alert" invisible="multi_line_ids">
+                    <p><strong>Warning:</strong> This product already has incoming stock that may cover the shortage.</p>
+                </div>
+                
+                <group invisible="multi_line_ids">
+                    <field name="incoming_qty" readonly="1"/>
+                    <field name="incoming_po_ids" widget="many2many_tags" readonly="1"/>
+                    <field name="shortage_qty" readonly="1"/>
+                    <field name="suggested_qty" readonly="1"/>
+                </group>
+
+                <div class="alert alert-warning" role="alert" invisible="multi_line_ids">
+                    <p>Creating another RFQ may cause overstocking.</p>
+                </div>
+
+                <footer>
+                    <button name="action_confirm" string="Proceed and Create RFQ" type="object" class="btn-primary" />
+                    <button string="Cancel" class="btn-secondary" special="cancel" />
+                </footer>
+            </form>
+        </field>
+    </record>
+
     <record id="pharmacy_shortage_line_view_list" model="ir.ui.view">
         <field name="name">pharmacy.shortage.line.view.list</field>
         <field name="model">pharmacy.shortage.line</field>
         <field name="arch" type="xml">
             <list string="Shortage Dashboard" create="0" edit="0" delete="0" export_xlsx="0"
-                  decoration-danger="urgency_level == 'critical'"
-                  decoration-warning="urgency_level == 'warning'"
-                  decoration-muted="incoming_qty > 0">
+                  decoration-danger="urgency_level == 'critical' and state != 'resolved'"
+                  decoration-warning="urgency_level == 'warning' and state != 'resolved'"
+                  decoration-success="state == 'covered'"
+                  decoration-muted="state == 'resolved'">
                 <header>
                     <button name="action_refresh_shortage_lines"
                         string="Update Dashboard"
@@ -24,8 +59,22 @@
                 <field name="product_id" />
                 <field name="available_qty" decoration-bf="1" />
                 <field name="min_qty" decoration-muted="1" />
-                <field name="incoming_qty" decoration-info="incoming_qty > 0" />
+                <field name="incoming_qty" decoration-info="incoming_qty &gt; 0" />
+                <field name="incoming_po_ids" widget="many2many_tags" string="Incoming References" optional="show" />
+                <button name="action_view_incoming_pos" 
+                        type="object" 
+                        icon="fa-list" 
+                        title="View Incoming Orders"
+                        invisible="incoming_po_count == 0" />
+                <field name="incoming_po_count" column_invisible="True" />
                 <field name="shortage_qty" decoration-danger="urgency_level == 'critical'" />
+                <field name="suggested_order_qty" decoration-bf="1" decoration-info="suggested_order_qty &gt; 0"/>
+                <field name="state" widget="badge" 
+                       decoration-danger="state == 'to_order'" 
+                       decoration-warning="state == 'partial'" 
+                       decoration-success="state == 'covered'" 
+                       decoration-muted="state == 'resolved'"/>
+                <field name="last_refresh_date" optional="hide" />
                 <field name="location_id" groups="stock.group_stock_multi_locations" optional="show" />
                 <field name="warehouse_id" groups="stock.group_stock_multi_warehouses"
                     optional="hide" />
@@ -34,14 +83,6 @@
                     type="object"
                     icon="fa-shopping-cart"
                     class="btn-primary"
-                    invisible="incoming_qty > 0"
-                    groups="pharmacy_base.group_purchase_manager,pharmacy_base.group_pharmacy_manager" />
-                <button name="action_create_rfq"
-                    string="Order More"
-                    type="object"
-                    icon="fa-plus"
-                    class="btn-secondary"
-                    invisible="incoming_qty == 0"
                     groups="pharmacy_base.group_purchase_manager,pharmacy_base.group_pharmacy_manager" />
             </list>
         </field>
@@ -54,10 +95,12 @@
             <search>
                 <field name="product_id" />
                 <filter name="critical" string="Critical"
-                    domain="[('urgency_level', '=', 'critical')]" />
-                <filter name="warning" string="Warning" domain="[('urgency_level', '=', 'warning')]" />
+                    domain="[('urgency_level', '=', 'critical'), ('state', '!=', 'resolved')]" />
+                <filter name="warning" string="Warning" domain="[('urgency_level', '=', 'warning'), ('state', '!=', 'resolved')]" />
+                <filter name="unresolved" string="Unresolved" domain="[('state', '!=', 'resolved')]" />
                 <separator />
-                <filter name="on_way" string="Already on Way" domain="[('incoming_qty', '>', 0)]" />
+                <filter name="on_way" string="Already on Way" domain="[('incoming_qty', '&gt;', 0)]" />
+                <filter name="resolved" string="Resolved" domain="[('state', '=', 'resolved')]" />
                 <group expand="0" string="Group By">
                     <filter string="Warehouse" name="grp_warehouse"
                         context="{'group_by': 'warehouse_id'}" />
@@ -84,7 +127,7 @@
         <field name="res_model">pharmacy.shortage.line</field>
         <field name="view_mode">list,form</field>
         <field name="search_view_id" ref="pharmacy_shortage_line_view_search" />
-        <field name="context">{'search_default_critical': 1}</field>
+        <field name="context">{'search_default_unresolved': 1}</field>
     </record>
 
     <menuitem id="menu_pharmacy_shortage_root"

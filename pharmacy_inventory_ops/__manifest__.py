@@ -22,6 +22,7 @@
         'security/ir.model.access.csv',
         'data/product_category_data.xml',
         'data/sequence.xml',
+        'data/ir_cron.xml',
         'views/pharmacy_shortage_line_view.xml',
         'views/pharmacy_count_views.xml',
         'views/pharmacy_count_line_views.xml',
