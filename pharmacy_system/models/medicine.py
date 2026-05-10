@@ -156,11 +156,13 @@ class ProductTemplate(models.Model):
         'low.stock.log',
         'product_tmpl_id',
         string='Low Stock Logs',
+        groups="pharmacy_base.group_pharmacy_manager",
     )
 
     log_count = fields.Integer(
         string='Logs Count',
         compute='_compute_log_count',
+        groups="pharmacy_base.group_pharmacy_manager",
     )
 
     # =========================================================================
@@ -227,8 +229,12 @@ class ProductTemplate(models.Model):
     # COMPUTE METHODS: LOW STOCK
     # =========================================================================
     def _compute_log_count(self):
+        is_manager = self.env.user.has_group('pharmacy_base.group_pharmacy_manager')
         for rec in self:
-            rec.log_count = len(rec.low_stock_log_ids)
+            if is_manager:
+                rec.log_count = len(rec.low_stock_log_ids)
+            else:
+                rec.log_count = 0
 
     @api.depends('qty_available', 'low_stock_limit')
     def _compute_is_low_stock(self):
@@ -327,26 +333,7 @@ class ProductTemplate(models.Model):
                 self.tracking = 'none'
 
     # =========================================================================
-    # ONCHANGE METHODS: PACKAGE / UNIT
-    # =========================================================================
-    @api.onchange('sell_as', 'units_per_package')
-    def _onchange_sell_as(self):
-        for rec in self:
-            if rec.sell_as == 'unit' and rec.units_per_package and rec.units_per_package > 0:
-                package_uom = rec._get_or_create_package_uom()
-                rec.uom_id = package_uom
-                rec.uom_po_id = package_uom
-                rec.package_uom_id = rec._create_or_get_unit_ratio_uom()
-            else:
-                rec.package_uom_id = False
-
-    @api.onchange('type')
-    def _onchange_force_package_uom(self):
-        for rec in self:
-            if not rec.id:
-                package_uom = rec._get_or_create_package_uom()
-                rec.uom_id = package_uom
-                rec.uom_po_id = package_uom
+    # UoM Onchanges are now handled in pharmacy_base
 
     # =========================================================================
     # ONCHANGE METHODS: PRICE
@@ -410,60 +397,7 @@ class ProductTemplate(models.Model):
                 }
             }
 
-    # =========================================================================
-    # HELPERS: PACKAGE / UNIT
-    # =========================================================================
-    def _get_or_create_package_uom(self):
-        category = self.env['uom.category'].sudo().search([
-            ('name', '=', 'Package'),
-        ], limit=1)
-
-        if not category:
-            category = self.env['uom.category'].sudo().create({
-                'name': 'Package',
-            })
-
-        package_uom = self.env['uom.uom'].sudo().search([
-            ('name', '=', 'Package'),
-            ('category_id', '=', category.id),
-        ], limit=1)
-
-        if not package_uom:
-            package_uom = self.env['uom.uom'].sudo().create({
-                'name': 'Package',
-                'category_id': category.id,
-                'uom_type': 'reference',
-                'factor': 1.0,
-                'rounding': 0.01,
-            })
-
-        return package_uom
-
-    def _create_or_get_unit_ratio_uom(self):
-        self.ensure_one()
-
-        if not self.units_per_package or self.units_per_package <= 0:
-            raise ValidationError(_('Units per package must be greater than zero.'))
-
-        package_uom = self._get_or_create_package_uom()
-        name = f'1 unit of {int(self.units_per_package)} units per Package'
-
-        uom = self.env['uom.uom'].sudo().search([
-            ('name', '=', name),
-            ('category_id', '=', package_uom.category_id.id),
-        ], limit=1)
-
-        if not uom:
-            uom = self.env['uom.uom'].sudo().create({
-                'name': name,
-                'category_id': package_uom.category_id.id,
-                'uom_type': 'smaller',
-                # 1 package = N units, so 1 unit = 1/N package.
-                'factor': self.units_per_package,
-                'rounding': 0.01,
-            })
-
-        return uom
+    # UoM Helpers are now handled in pharmacy_base
 
     # =========================================================================
     # HELPERS: WRITE VALIDATIONS
@@ -545,29 +479,14 @@ class ProductTemplate(models.Model):
                     }
                 )
 
-    def _sync_package_uom_after_write(self):
-        for rec in self:
-            if rec.sell_as == 'unit' and rec.units_per_package:
-                uom = rec._create_or_get_unit_ratio_uom()
-
-                # Safe assignment: avoids recursive write loop.
-                if rec.package_uom_id != uom:
-                    super(ProductTemplate, rec).write({
-                        'package_uom_id': uom.id,
-                    })
+    # _sync_package_uom_after_write is handled by pharmacy_base
 
     # =========================================================================
     # ORM OVERRIDES: CREATE / WRITE
     # =========================================================================
     @api.model_create_multi
     def create(self, vals_list):
-        package_uom = self._get_or_create_package_uom()
-
         for vals in vals_list:
-            # Business rule: native product UoM is always Package.
-            vals['uom_id'] = package_uom.id
-            vals['uom_po_id'] = package_uom.id
-
             if vals.get('gov_price_lock'):
                 if not self.env.user.has_group('pharmacy_system.group_pharmacy_manager'):
                     raise ValidationError(_(
@@ -575,14 +494,6 @@ class ProductTemplate(models.Model):
                     ))
 
         records = super().create(vals_list)
-
-        for rec in records:
-            if rec.sell_as == 'unit' and rec.units_per_package:
-                uom = rec._create_or_get_unit_ratio_uom()
-                super(ProductTemplate, rec).write({
-                    'package_uom_id': uom.id,
-                })
-
         return records
 
     def write(self, vals):
@@ -591,13 +502,14 @@ class ProductTemplate(models.Model):
         self._check_gov_price_lock_access(vals)
         self._check_public_price_change_allowed(vals)
         self._check_tracking_change_allowed(vals)
+        self._check_category_change_allowed(vals)
+        self._log_security_changes(vals)
 
         old_prices = self._prepare_old_public_prices(vals)
 
         res = super().write(vals)
 
         self._create_public_price_history(old_prices, vals)
-        self._sync_package_uom_after_write()
 
         return res
 

@@ -9,6 +9,7 @@ class ProductTemplate(models.Model):
         string='Commission %',
         digits=(16, 2),
         help='Commission percentage used to calculate margin-based commission on sales order lines.',
+        groups="pharmacy_base.group_pricing_manager,pharmacy_base.group_pharmacy_manager",
     )
     commission_feature_enabled = fields.Boolean(
         string='Commission Feature Enabled',
@@ -19,6 +20,7 @@ class ProductTemplate(models.Model):
         'product.price.history',
         'product_id',
         string='Price History',
+        groups="pharmacy_base.group_pricing_manager,pharmacy_base.group_pharmacy_manager",
     )
     max_qty_per_invoice = fields.Integer(
         string='Max package per Invoice',
@@ -28,8 +30,12 @@ class ProductTemplate(models.Model):
         string='Enable Low Stock Control',
         help='If enabled, low stock rules will apply. Otherwise, fixed max per invoice is used.',
     )
-    low_stock_limit = fields.Integer(string='Low Stock Limit')
-    max_qty_low_stock = fields.Integer(string='Max package per Invoice When Low')
+    low_stock_limit = fields.Integer(
+        string='Low Stock Limit',
+    )
+    max_qty_low_stock = fields.Integer(
+        string='Max package per Invoice When Low',
+    )
     is_low_stock = fields.Boolean(
         string='Is Low Stock',
         compute='_compute_is_low_stock',
@@ -39,8 +45,13 @@ class ProductTemplate(models.Model):
         'low.stock.log',
         'product_tmpl_id',
         string='Low Stock Logs',
+        groups="pharmacy_base.group_pharmacy_manager",
     )
-    log_count = fields.Integer(string='Logs Count', compute='_compute_log_count')
+    log_count = fields.Integer(
+        string='Logs Count',
+        compute='_compute_log_count',
+        groups="pharmacy_base.group_pharmacy_manager",
+    )
 
     @api.depends_context('company')
     def _compute_commission_feature_enabled(self):
@@ -49,8 +60,12 @@ class ProductTemplate(models.Model):
             rec.commission_feature_enabled = enabled
 
     def _compute_log_count(self):
+        is_manager = self.env.user.has_group('pharmacy_base.group_pharmacy_manager')
         for rec in self:
-            rec.log_count = len(rec.low_stock_log_ids)
+            if is_manager:
+                rec.log_count = len(rec.low_stock_log_ids)
+            else:
+                rec.log_count = 0
 
     @api.depends('qty_available', 'low_stock_limit')
     def _compute_is_low_stock(self):

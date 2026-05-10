@@ -2,4 +2,8 @@ __pycache__/
 *.pyc
 *.pyo
 .DS_Store
-.odoo-test-data/
+.odoo-test-data/    
+.gemini/
+.speckit/
+.specify/
+

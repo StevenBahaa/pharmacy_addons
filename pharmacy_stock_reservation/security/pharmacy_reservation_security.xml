@@ -1,42 +1,18 @@
 <?xml version="1.0" encoding="utf-8"?>
 <odoo>
     <!-- ─── Security Groups ──────────────────────────────────────────────── -->
-    <record id="group_pharmacy_inventory_manager" model="res.groups">
-        <field name="name">Pharmacy Inventory Manager</field>
-        <field name="category_id" ref="base.module_category_inventory_inventory"/>
-        <field name="comment">Can force-unreserve stock, confirm transfers with insufficient qty, and view full reservation audit log.</field>
-        <field name="implied_ids" eval="[(4, ref('stock.group_stock_manager'))]"/>
-    </record>
-
-    <record id="group_pharmacy_inventory_user" model="res.groups">
-        <field name="name">Pharmacy Inventory User</field>
-        <field name="category_id" ref="base.module_category_inventory_inventory"/>
-        <field name="comment">Can view reservation data and initiate transfers up to available quantity.</field>
-        <field name="implied_ids" eval="[(4, ref('stock.group_stock_user'))]"/>
-    </record>
-
-    <!-- ─── Record Rules ─────────────────────────────────────────────────── -->
-    <!-- All internal users can read reservation logs -->
-    <record id="rule_reservation_log_read_all" model="ir.rule">
-        <field name="name">Reservation Log: All users read</field>
+    <!-- â”€â”€â”€ Record Rules â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€ -->
+    <record id="rule_reservation_log_multi_company" model="ir.rule">
+        <field name="name">Reservation Log: Multi-Company</field>
         <field name="model_id" ref="model_pharmacy_reservation_log"/>
         <field name="groups" eval="[(4, ref('base.group_user'))]"/>
         <field name="perm_read">1</field>
-        <field name="perm_write">0</field>
-        <field name="perm_create">0</field>
-        <field name="perm_unlink">0</field>
-        <field name="domain_force">[(1, '=', 1)]</field>
-    </record>
-
-    <!-- Only managers can write/delete reservation logs -->
-    <record id="rule_reservation_log_manager_write" model="ir.rule">
-        <field name="name">Reservation Log: Managers write</field>
-        <field name="model_id" ref="model_pharmacy_reservation_log"/>
-        <field name="groups" eval="[(4, ref('group_pharmacy_inventory_manager'))]"/>
-        <field name="perm_read">1</field>
         <field name="perm_write">1</field>
         <field name="perm_create">1</field>
-        <field name="perm_unlink">0</field>
-        <field name="domain_force">[(1, '=', 1)]</field>
+        <field name="perm_unlink">1</field>
+        <field name="domain_force">['|', ('location_id.company_id', '=', False), ('location_id.company_id', 'in', company_ids)]</field>
     </record>
-</odoo>
+
+    <!-- Only managers can write/delete reservation logs (further restricted by ACL) -->
+    <!-- This rule enforces that even managers only see logs for their company -->
+    </odoo>

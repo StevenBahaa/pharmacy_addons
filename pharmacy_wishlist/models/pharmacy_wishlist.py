@@ -72,10 +72,18 @@ class PharmacyWishlist(models.Model):
         return super(PharmacyWishlist, self).create(vals_list)
 
     def action_set_no_answer(self):
+        if not self.env.user.has_group('pharmacy_base.group_cashier') and \
+           not self.env.user.has_group('pharmacy_base.group_pharmacist') and \
+           not self.env.user.has_group('pharmacy_base.group_pharmacy_manager'):
+            raise UserError(_("You are not authorized to update wishlist call status."))
         self.write({'state': 'called_not_answered'})
         self._create_followup_activity(_('Customer did not answer. Please try calling again later.'))
 
     def action_set_called(self):
+        if not self.env.user.has_group('pharmacy_base.group_cashier') and \
+           not self.env.user.has_group('pharmacy_base.group_pharmacist') and \
+           not self.env.user.has_group('pharmacy_base.group_pharmacy_manager'):
+            raise UserError(_("You are not authorized to fulfill wishlist requests."))
         self.write({'state': 'called'})
         # Mark existing activities as done
         self.activity_feedback(activity_type_xmlid='mail.mail_activity_data_todo')

@@ -42,7 +42,7 @@ class SaleOrder(models.Model):
                         warehouse=order.warehouse_id.id
                     ).qty_available
                     if stock <= tmpl.low_stock_limit and total_qty > tmpl.max_qty_low_stock:
-                        self.env['low.stock.log'].create({
+                        self.env['low.stock.log'].sudo().create({
                             'user_id': self.env.user.id,
                             'product_id': product.id,
                             'quantity': total_qty,

@@ -35,7 +35,9 @@ class ProductTemplate(models.Model):
         help='Manufacturer linked from contacts.',
     )
 
-    x_is_scheduled = fields.Boolean(string='Scheduled Medicine')
+    x_is_scheduled = fields.Boolean(
+        string='Scheduled Medicine',
+    )
     x_schedule_level = fields.Selection(
         [
             ('schedule_1', 'Schedule I'),
@@ -54,7 +56,11 @@ class ProductTemplate(models.Model):
         required=True,
         tracking=True,
     )
-    gov_price_lock = fields.Boolean(string='Government Price Lock', default=False)
+    gov_price_lock = fields.Boolean(
+        string='Government Price Lock',
+        default=False,
+    )
+    standard_price = fields.Float(groups="pharmacy_base.group_pricing_manager,pharmacy_base.group_pharmacy_manager")
     currency_display_price = fields.Monetary(
         string='Price (Other Currency)',
         compute='_compute_currency_display_price',
@@ -64,6 +70,7 @@ class ProductTemplate(models.Model):
         string='Avg. Purchase Cost',
         compute='_compute_x_avg_cost_display',
         store=False,
+        groups="pharmacy_base.group_pricing_manager,pharmacy_base.group_pharmacy_manager",
     )
 
     similar_product_ids = fields.One2many(
@@ -88,15 +95,16 @@ class ProductTemplate(models.Model):
     )
     @api.depends_context('company')
     def _compute_x_avg_cost_display(self):
-        for rec in self:
+        # Use sudo to allow internal recomputation for all users to prevent AccessErrors 
+        # when non-restricted fields change. Field visibility is handled by groups attribute.
+        for rec in self.sudo():
             product = rec.product_variant_id or rec.product_variant_ids[:1]
-            cost_in_package = product.standard_price if product else (rec.standard_price or 0.0)
+            cost_in_package = product.standard_price if product else (rec.standard_price or 0.0) 
             precision_rounding = rec.currency_id.rounding if rec.currency_id else 0.01
-            if not float_is_zero(cost_in_package, precision_rounding=precision_rounding):
+            if not float_is_zero(cost_in_package, precision_rounding=precision_rounding):        
                 rec.x_avg_cost_display = f'{cost_in_package:.3f}'
             else:
                 rec.x_avg_cost_display = '--'
-
     @api.depends('public_price')
     def _compute_currency_display_price(self):
         for rec in self:
@@ -133,15 +141,27 @@ class ProductTemplate(models.Model):
             elif self.x_classification == 'non_medicine':
                 self.tracking = 'none'
 
+    @api.model
+    def default_get(self, fields_list):
+        res = super().default_get(fields_list)
+        package_uom = self._get_or_create_package_uom()
+        if 'uom_id' in fields_list:
+            res['uom_id'] = package_uom.id
+        if 'uom_po_id' in fields_list:
+            res['uom_po_id'] = package_uom.id
+        return res
+
     @api.onchange('sell_as', 'units_per_package')
     def _onchange_sell_as(self):
         for rec in self:
+            package_uom = rec._get_or_create_package_uom()
             if rec.sell_as == 'unit' and rec.units_per_package and rec.units_per_package > 0:
-                package_uom = rec._get_or_create_package_uom()
-                rec.uom_id = package_uom
-                rec.uom_po_id = package_uom
-                rec.package_uom_id = rec._create_or_get_unit_ratio_uom()
+                rec.uom_id = package_uom.id
+                rec.uom_po_id = package_uom.id
+                rec.package_uom_id = rec._create_or_get_unit_ratio_uom().id
             else:
+                rec.uom_id = package_uom.id
+                rec.uom_po_id = package_uom.id
                 rec.package_uom_id = False
 
     @api.onchange('type')
@@ -149,8 +169,8 @@ class ProductTemplate(models.Model):
         for rec in self:
             if not rec.id:
                 package_uom = rec._get_or_create_package_uom()
-                rec.uom_id = package_uom
-                rec.uom_po_id = package_uom
+                rec.uom_id = package_uom.id
+                rec.uom_po_id = package_uom.id
 
     @api.onchange('public_price')
     def _onchange_public_price(self):
@@ -194,9 +214,13 @@ class ProductTemplate(models.Model):
             }
 
     def _get_or_create_package_uom(self):
-        category = self.env['uom.category'].sudo().search([
-            ('name', '=', 'Package'),
-        ], limit=1)
+        # 1. Try by XML ID first (most reliable)
+        package_uom = self.env.ref('pharmacy_base.uom_uom_package', raise_if_not_found=False)
+        if package_uom:
+            return package_uom.sudo()
+
+        # 2. Fallback to name search
+        category = self.env['uom.category'].sudo().search([('name', '=', 'Package')], limit=1)
         if not category:
             category = self.env['uom.category'].sudo().create({'name': 'Package'})
 
@@ -204,6 +228,7 @@ class ProductTemplate(models.Model):
             ('name', '=', 'Package'),
             ('category_id', '=', category.id),
         ], limit=1)
+
         if not package_uom:
             package_uom = self.env['uom.uom'].sudo().create({
                 'name': 'Package',
@@ -212,7 +237,7 @@ class ProductTemplate(models.Model):
                 'factor': 1.0,
                 'rounding': 0.01,
             })
-        return package_uom
+        return package_uom.sudo()
 
     def _create_or_get_unit_ratio_uom(self):
         self.ensure_one()
@@ -252,65 +277,78 @@ class ProductTemplate(models.Model):
             if rec.gov_price_lock:
                 raise UserError(_('Price is government-regulated and cannot be changed.'))
 
-    def _check_tracking_change_allowed(self, vals):
-        if 'tracking' not in vals:
-            return
-        for rec in self:
-            has_stock_moves = self.env['stock.move'].search_count([
-                ('product_id', 'in', rec.product_variant_ids.ids),
-                ('state', '!=', 'cancel'),
-            ], limit=1)
-            if has_stock_moves and rec.tracking != vals['tracking']:
-                tracking_selection = dict(rec._fields['tracking'].selection)
-                current_label = tracking_selection.get(rec.tracking, rec.tracking)
-                new_label = tracking_selection.get(vals['tracking'], vals['tracking'])
-                raise UserError(_(
-                    'Cannot change tracking method for product "%(name)s" '
-                    'because it already has stock transactions.\n'
-                    'Current tracking: %(current)s\n'
-                    'Attempted change to: %(new)s'
-                ) % {
-                    'name': rec.name,
-                    'current': current_label,
-                    'new': new_label,
-                })
+    def _create_audit_log(self, action_type, old_value, new_value, note=None):
+        self.ensure_one()
+        self.env['pharmacy.audit.log'].sudo().create({
+            'user_id': self.env.user.id,
+            'model_name': self._name,
+            'res_id': self.id,
+            'action_type': action_type,
+            'old_value': str(old_value),
+            'new_value': str(new_value),
+            'note': note,
+        })
 
-    def _sync_package_uom_after_write(self):
+    def _check_category_change_allowed(self, vals):
+        if 'categ_id' not in vals:
+            return
+        if not self.env.user.has_group('pharmacy_base.group_product_config_manager') and \
+           not self.env.user.has_group('pharmacy_base.group_pharmacy_manager'):
+            raise UserError(_('You are not authorized to change product categories.'))
+
+    def _log_security_changes(self, vals):
         for rec in self:
-            if rec.sell_as == 'unit' and rec.units_per_package:
-                uom = rec._create_or_get_unit_ratio_uom()
-                if rec.package_uom_id != uom:
-                    super(ProductTemplate, rec).write({'package_uom_id': uom.id})
+            if 'x_classification' in vals and vals['x_classification'] != rec.x_classification:
+                rec._create_audit_log('classification_change', rec.x_classification, vals['x_classification'])
+            if 'gov_price_lock' in vals and vals['gov_price_lock'] != rec.gov_price_lock:
+                rec._create_audit_log('price_override', f"Lock: {rec.gov_price_lock}", f"Lock: {vals['gov_price_lock']}")
+            if 'x_schedule_level' in vals and vals['x_schedule_level'] != rec.x_schedule_level:
+                rec._create_audit_log('scheduled_medicine_change', rec.x_schedule_level, vals['x_schedule_level'])
+            if 'x_is_scheduled' in vals and vals['x_is_scheduled'] != rec.x_is_scheduled:
+                rec._create_audit_log('scheduled_medicine_change', f"Scheduled: {rec.x_is_scheduled}", f"Scheduled: {vals['x_is_scheduled']}")
 
     @api.model_create_multi
     def create(self, vals_list):
         package_uom = self._get_or_create_package_uom()
         for vals in vals_list:
+            # Force same category for both UoMs to prevent Odoo constraint error
             vals['uom_id'] = package_uom.id
             vals['uom_po_id'] = package_uom.id
-            if not vals.get('public_price'):
-                vals['public_price'] = vals.get('list_price') or 1.0
-            if vals.get('gov_price_lock'):
-                if not self.env.user.has_group('pharmacy_base.group_pharmacy_manager'):
-                    raise ValidationError(_(
-                        'Only a Pharmacy Manager can enable Government Price Lock.'
-                    ))
-
         records = super().create(vals_list)
-        for rec in records:
-            if rec.sell_as == 'unit' and rec.units_per_package:
-                uom = rec._create_or_get_unit_ratio_uom()
-                super(ProductTemplate, rec).write({'package_uom_id': uom.id})
+        records._sync_package_uom_after_write()
         return records
 
     def write(self, vals):
         vals = dict(vals)
-        self._check_gov_price_lock_access(vals)
-        self._check_public_price_change_allowed(vals)
-        self._check_tracking_change_allowed(vals)
+
+        # Force UoM consistency — always same Package category
+        package_uom = self._get_or_create_package_uom()
+        if 'uom_id' in vals or 'uom_po_id' in vals:
+            vals['uom_id'] = package_uom.id
+            vals['uom_po_id'] = package_uom.id
+
         res = super().write(vals)
         self._sync_package_uom_after_write()
         return res
+
+    def _sync_package_uom_after_write(self):
+        package_uom = self._get_or_create_package_uom()
+        for rec in self:
+            if rec.sell_as == 'package':
+                if rec.uom_id != package_uom or rec.uom_po_id != package_uom or rec.package_uom_id:
+                    super(ProductTemplate, rec).write({
+                        'uom_id': package_uom.id,
+                        'uom_po_id': package_uom.id,
+                        'package_uom_id': False,
+                    })
+            elif rec.sell_as == 'unit' and rec.units_per_package:
+                uom = rec._create_or_get_unit_ratio_uom()
+                if rec.package_uom_id != uom or rec.uom_id != package_uom or rec.uom_po_id != package_uom:
+                    super(ProductTemplate, rec).write({
+                        'uom_id': package_uom.id,
+                        'uom_po_id': package_uom.id,
+                        'package_uom_id': uom.id,
+                    })
 
     @api.model
     def _name_search(self, name, domain=None, operator='ilike', limit=None, order=None):

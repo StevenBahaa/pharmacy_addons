@@ -125,6 +125,10 @@ class StockLot(models.Model):
     @api.model
     def cron_detect_expired_lots(self):
         """وظيفة الفحص الليلي للمنتجات المنتهية - المدمجة"""
+        if not self.env.su and not self.env.user.has_group('pharmacy_base.group_inventory_manager') and \
+           not self.env.user.has_group('pharmacy_base.group_pharmacy_manager'):
+            raise UserError(_("Only Inventory or Pharmacy Managers can run expiry detection manually."))
+        
         today = fields.Date.context_today(self)
         expired_quants = self.env['stock.quant'].search([
             ('location_id.usage', '=', 'internal'),

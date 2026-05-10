@@ -4,3 +4,4 @@ from . import product_barcode_line
 from . import product_template
 from . import product_product
 from . import uom_uom
+from . import audit_log

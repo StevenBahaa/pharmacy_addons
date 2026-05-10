@@ -388,6 +388,9 @@ class PharmacyShortageLine(models.Model):
         return vals
     
     def action_create_rfq_from_selected(self):
+        if not self.env.user.has_group('pharmacy_base.group_purchasing_officer') and \
+           not self.env.user.has_group('pharmacy_base.group_pharmacy_manager'):
+            raise UserError(_("Only Purchasing Officers or Pharmacy Managers can create RFQs."))
         # Filter out resolved lines if somehow called
         records = self.filtered(lambda r: r.state != 'resolved')
         if not records:

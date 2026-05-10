@@ -9,6 +9,7 @@
     'depends': ['pharmacy_base', 'pharmacy_stock_expiry', 'purchase', 'stock', 'account', 'product_expiry'],
     'data': [
         'security/ir.model.access.csv',
+        'security/pharmacy_security_rules.xml',
         'views/purchase_order_line_uom_views.xml',
         'views/product_purchase_views.xml',
         'views/purchase_order_consignment_views.xml',

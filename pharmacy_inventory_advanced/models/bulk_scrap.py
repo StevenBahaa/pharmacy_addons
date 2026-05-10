@@ -8,6 +8,7 @@ class PharmacyBulkScrap(models.Model):
 
     name = fields.Char(string='Reference', required=True, readonly=True, default=lambda self: _('New'))
     date = fields.Date(string='Date', default=fields.Date.today, required=True)
+    company_id = fields.Many2one('res.company', string='Company', required=True, default=lambda self: self.env.company)
     user_id = fields.Many2one('res.users', string='Responsible', default=lambda self: self.env.user)
     line_ids = fields.One2many('pharmacy.bulk.scrap.line', 'bulk_id', string='Scrap Lines')
     state = fields.Selection([('draft', 'Draft'), ('done', 'Validated')], default='draft')
@@ -19,6 +20,9 @@ class PharmacyBulkScrap(models.Model):
         return super(PharmacyBulkScrap, self).create(vals)
 
     def action_validate(self):
+        if not self.env.user.has_group('pharmacy_base.group_inventory_manager') and \
+           not self.env.user.has_group('pharmacy_base.group_pharmacy_manager'):
+            raise ValidationError(_("Only Inventory or Pharmacy Managers can validate bulk scrap sessions."))
         for line in self.line_ids:
             available_qty = line.product_id.with_context(location=line.location_id.id).qty_available
             if line.quantity > available_qty:

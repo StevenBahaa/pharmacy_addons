@@ -43,6 +43,24 @@
         <field name="implied_ids" eval="[(4, ref('pharmacy_base.group_pharmacy_user'))]"/>
     </record>
 
+    <record id="group_inventory_manager" model="res.groups">
+        <field name="name">Inventory Manager</field>
+        <field name="category_id" ref="pharmacy_base.module_category_pharmacy"/>
+        <field name="implied_ids" eval="[(4, ref('stock.group_stock_user')), (4, ref('pharmacy_base.group_pharmacy_user'))]"/>
+    </record>
+
+    <record id="group_product_config_manager" model="res.groups">
+        <field name="name">Product Configuration Manager</field>
+        <field name="category_id" ref="pharmacy_base.module_category_pharmacy"/>
+        <field name="implied_ids" eval="[(4, ref('pharmacy_base.group_pharmacy_user'))]"/>
+    </record>
+
+    <record id="group_compliance_manager" model="res.groups">
+        <field name="name">Compliance Manager</field>
+        <field name="category_id" ref="pharmacy_base.module_category_pharmacy"/>
+        <field name="implied_ids" eval="[(4, ref('pharmacy_base.group_pharmacy_user'))]"/>
+    </record>
+
     <record id="group_purchase_manager" model="res.groups">
         <field name="name">Purchase Manager</field>
         <field name="category_id" ref="pharmacy_base.module_category_pharmacy"/>

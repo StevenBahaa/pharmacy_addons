@@ -18,6 +18,11 @@ class ProductTemplate(models.Model):
     barcode_line_ids = fields.One2many('product.barcode.line', 'product_id', string="Additional Barcodes")
 
     def action_generate_random_barcode(self):
+        if not self.env.user.has_group('pharmacy_base.group_product_config_manager') and \
+           not self.env.user.has_group('pharmacy_base.group_pharmacy_manager'):
+            from odoo.exceptions import UserError
+            from odoo import _
+            raise UserError(_("Only Product Configuration Managers or Pharmacy Managers can generate barcodes."))
         for record in self:
             random_base = ''.join([str(random.randint(0, 9)) for _ in range(12)])
             new_barcode = self._generate_ean13_value(random_base)

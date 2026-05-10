@@ -20,6 +20,7 @@
     'data': [
         'security/security.xml',
         'security/ir.model.access.csv',
+        'security/pharmacy_security_rules.xml',
         'data/product_category_data.xml',
         'data/sequence.xml',
         'data/ir_cron.xml',

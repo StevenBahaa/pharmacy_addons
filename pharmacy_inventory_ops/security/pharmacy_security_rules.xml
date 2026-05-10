@@ -1,0 +1,16 @@
+<?xml version="1.0" encoding="utf-8"?>
+<odoo>
+    <record id="rule_pharmacy_count_multi_company" model="ir.rule">
+        <field name="name">Pharmacy Count: Multi-Company</field>
+        <field name="model_id" ref="model_pharmacy_count"/>
+        <field name="groups" eval="[(4, ref('base.group_user'))]"/>
+        <field name="domain_force">['|', ('company_id', '=', False), ('company_id', 'in', company_ids)]</field>
+    </record>
+
+    <record id="rule_pharmacy_shortage_line_multi_company" model="ir.rule">
+        <field name="name">Shortage Line: Multi-Company</field>
+        <field name="model_id" ref="model_pharmacy_shortage_line"/>
+        <field name="groups" eval="[(4, ref('base.group_user'))]"/>
+        <field name="domain_force">['|', ('warehouse_id.company_id', '=', False), ('warehouse_id.company_id', 'in', company_ids)]</field>
+    </record>
+</odoo>

@@ -18,6 +18,7 @@
     'author': 'Custom Development',
     'category': 'Inventory/Inventory',
     'depends': [
+        'pharmacy_base',
         'stock',
         'purchase',
         'sale_stock',

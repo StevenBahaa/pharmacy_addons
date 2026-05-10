@@ -1,0 +1,16 @@
+<?xml version="1.0" encoding="utf-8"?>
+<odoo>
+    <record id="rule_product_discount_history_multi_company" model="ir.rule">
+        <field name="name">Product Discount History: Multi-Company</field>
+        <field name="model_id" ref="model_product_discount_history"/>
+        <field name="groups" eval="[(4, ref('base.group_user'))]"/>
+        <field name="domain_force">['|', ('invoice_id.company_id', '=', False), ('invoice_id.company_id', 'in', company_ids)]</field>
+    </record>
+
+    <record id="rule_pharmacy_consignment_payment_multi_company" model="ir.rule">
+        <field name="name">Consignment Payment: Multi-Company</field>
+        <field name="model_id" ref="model_pharmacy_consignment_payment"/>
+        <field name="groups" eval="[(4, ref('base.group_user'))]"/>
+        <field name="domain_force">['|', ('vendor_bill_id.company_id', '=', False), ('vendor_bill_id.company_id', 'in', company_ids)]</field>
+    </record>
+</odoo>
