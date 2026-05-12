@@ -12,12 +12,12 @@ The **Pharmacy Management System** is a specialized suite for Odoo 18 Community 
 * **Safety & Compliance**: Integrated warnings for scheduled medicines and automated lot expiry detection.
 * **Smart Procurement**: Consignment tracking, supplier discount history, and advanced PO lifecycle visibility.
 * **Retail Optimization**: Intelligent product suggestions at the Point of Sale and alternate product mapping.
-* **Audit-Ready Architecture**: Systematic logging of sensitive data changes and stock adjustments.
+* **Operational Audit Logging**: Systematic logging of sensitive data changes and stock adjustments.
 
 ## 💻 3. Technical Requirements
 * **Odoo Version**: 18.0 Community Edition.
 * **Python**: 3.10+
-* **PostgreSQL**: 13.0+
+* **PostgreSQL**: 14.0+
 * **Core Dependencies**: `base`, `stock`, `purchase`, `point_of_sale`, `product_expiry`.
 
 ## 🏗️ 4. Module Structure
@@ -101,7 +101,25 @@ Each module includes a `tests/` directory covering:
 python3 odoo-bin -c your_config.conf -i pharmacy_system --test-enable --stop-after-init
 ```
 
-## 📝 9. Notes
+## 📸 9. Screenshots
+*(Placeholders for system visuals)*
+
+### POS Safety Warnings
+![POS Warning Placeholder](https://via.placeholder.com/800x400?text=POS+Controlled+Substance+Warning)
+*Alert triggered when a scheduled medicine is added to the cart.*
+
+### Expired Medicines Management
+![Expired Medicines Placeholder](https://via.placeholder.com/800x400?text=Expired+Medicines+Dashboard)
+*Unified view of quarantined stock and upcoming expiries.*
+
+### Consumption Forecast Dashboard
+![Forecast Placeholder](https://via.placeholder.com/800x400?text=Inventory+Forecast+Dashboard)
+*AI-driven stock level predictions based on historical sales.*
+
+## 📄 10. License
+Distributed under the **LGPL-3** License. See `LICENSE` or module manifests for more information.
+
+## 📝 11. Notes
 * **Post-Install**: Configure your "Expired" location in **Inventory > Configuration > Locations**.
 * **UoM Usage**: Enable "Units of Measure" in Odoo General Settings to utilize pharmacy-specific package units.
 * **Auditing**: Access the unified Audit Log via **Pharmacy > Configuration > Audit Logs**.
