@@ -11,6 +11,7 @@
         'pharmacy_base'
     ],
     'data': [
+        'security/ir.model.access.csv',
         'report/pharmacy_shortage_report.xml',
         'views/pharmacy_shortage_report_views.xml',
     ],

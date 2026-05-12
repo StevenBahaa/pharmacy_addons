@@ -14,7 +14,8 @@
                            invisible="not commission_feature_enabled"/>
                 </group>
 
-                <group string="Stock Control">
+                <group string="Stock Control"
+                       groups="pharmacy_base.group_product_config_manager,pharmacy_base.group_pharmacy_manager">
                     <label for="activate_stock_low"
                            string="Activate Stock Low"
                            invisible="activate_stock_low"/>
@@ -37,6 +38,7 @@
             <xpath expr="//sheet/notebook" position="inside">
                 <page name="low_stock_logs"
                       string="Low Stock Logs"
+                      groups="pharmacy_base.group_pharmacy_manager"
                       invisible="type in ('service', 'combo')">
                     <field name="low_stock_log_ids" readonly="1">
                         <list>
@@ -52,7 +54,8 @@
             </xpath>
 
             <xpath expr="//notebook" position="inside">
-                <page name="price_history" string="Price History">
+                <page name="price_history" string="Price History"
+                      groups="pharmacy_base.group_pharmacy_manager,pharmacy_base.group_pricing_manager">
                     <field name="price_history_ids" readonly="1">
                         <list>
                             <field name="date"/>

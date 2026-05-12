@@ -1,0 +1,12 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<odoo>
+    <menuitem id="menu_pharmacy_root"
+              name="Pharmacy"
+              sequence="25"/>
+
+    <menuitem id="menu_pharmacy_config"
+              name="Configuration"
+              parent="menu_pharmacy_root"
+              sequence="100"
+              groups="pharmacy_base.group_pharmacy_manager"/>
+</odoo>

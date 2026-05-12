@@ -1,0 +1,9 @@
+<?xml version="1.0" encoding="utf-8"?>
+<odoo>
+    <record id="rule_stock_expired_log_multi_company" model="ir.rule">
+        <field name="name">Expired Stock Log: Multi-Company</field>
+        <field name="model_id" ref="model_stock_expired_log"/>
+        <field name="groups" eval="[(4, ref('base.group_user'))]"/>
+        <field name="domain_force">['|', ('source_location_id.company_id', '=', False), ('source_location_id.company_id', 'in', company_ids)]</field>
+    </record>
+</odoo>

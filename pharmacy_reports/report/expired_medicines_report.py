@@ -7,6 +7,12 @@ class ExpiredMedicinesReport(models.AbstractModel):
     _description = 'Expired Medicines Report'
 
     def _get_report_values(self, docids, data=None):
+        if not self.env.user.has_group('pharmacy_base.group_inventory_manager') and \
+           not self.env.user.has_group('pharmacy_base.group_pharmacy_manager'):
+            from odoo.exceptions import AccessError
+            from odoo import _
+            raise AccessError(_("You are not authorized to view the Expired Medicines Report."))
+
         wizard = self.env['expired.medicines.report.wizard'].browse(docids)
 
         month = int(wizard.month)
@@ -30,15 +36,20 @@ class ExpiredMedicinesReport(models.AbstractModel):
         grouped = {}
         grand_total = 0.0
 
-        for q in quants:
-            loc = q.location_id
-            product = q.product_id
+        is_pricing_manager = self.env.user.has_group('pharmacy_base.group_pricing_manager') or \
+                             self.env.user.has_group('pharmacy_base.group_pharmacy_manager')
+
+        for g in quants:
+            loc = g.location_id
+            product = g.product_id
             units_per_package = product.product_tmpl_id.units_per_package or 1
-            total_units = round(q.quantity * units_per_package)
+            total_units = round(g.quantity * units_per_package)
             box_qty = total_units // units_per_package
             unit_qty = total_units % units_per_package
-            box_price = product.standard_price
-            total_value = q.quantity * box_price
+
+            # Mask cost data if not pricing manager
+            box_price = product.standard_price if is_pricing_manager else 0.0
+            total_value = g.quantity * box_price if is_pricing_manager else 0.0
             grand_total += total_value
 
             if loc not in grouped:
@@ -46,14 +57,13 @@ class ExpiredMedicinesReport(models.AbstractModel):
             grouped[loc].append({
                 'barcode': product.barcode or '',
                 'name': product.display_name,
-                'lot': q.lot_id.name or '-',
-                'expiry_date': q.removal_date.strftime('%m/%Y') if q.removal_date else '-',
+                'lot': g.lot_id.name or '-',
+                'expiry_date': g.removal_date.strftime('%m/%Y') if g.removal_date else '-',
                 'box_qty': box_qty,
                 'unit_qty': unit_qty,
                 'box_price': box_price,
                 'total_value': total_value,
             })
-
         grouped_lines = [
             {'location_name': loc.complete_name, 'lines': lines}
             for loc, lines in grouped.items()

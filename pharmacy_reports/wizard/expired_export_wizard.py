@@ -150,6 +150,9 @@ class ExpiredExportWizard(models.TransientModel):
 
     def action_export(self):
         self.ensure_one()
+        if not self.env.user.has_group('pharmacy_base.group_inventory_manager') and \
+           not self.env.user.has_group('pharmacy_base.group_pharmacy_manager'):
+            raise UserError(_("You are not authorized to export expired medicines."))
         quants = self._get_quants()
 
         if not quants:

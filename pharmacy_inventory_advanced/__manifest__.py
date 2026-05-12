@@ -10,9 +10,10 @@
         - Color-coded stock coverage alerts.
     """,
     'author': 'Mohamed Atef',
-    'depends': ['stock', 'purchase', 'purchase_requisition'],
+    'depends': ['pharmacy_base', 'stock', 'purchase', 'purchase_requisition'],
     'data': [
         'security/ir.model.access.csv',
+        'security/pharmacy_security_rules.xml',
         'data/sequence_data.xml',
         'views/bulk_scrap_views.xml',
         'views/consumption_forecast_views.xml',

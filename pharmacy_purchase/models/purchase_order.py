@@ -33,6 +33,10 @@ class PurchaseOrder(models.Model):
         Manually sync tracking lines from all done pickings (Receipts & Sales).
         Useful for repairing data from existing test runs.
         """
+        if not self.env.user.has_group('pharmacy_base.group_purchasing_officer') and \
+           not self.env.user.has_group('pharmacy_base.group_pharmacy_manager'):
+            from odoo.exceptions import UserError
+            raise UserError(_("Only Purchasing Officers or Pharmacy Managers can sync consignment lines."))
         for order in self:
             if not order.is_consignment:
                 continue
@@ -87,6 +91,10 @@ class PurchaseOrder(models.Model):
 
 
     def action_open_consignment_tracking(self):
+        if not self.env.user.has_group('pharmacy_base.group_purchasing_officer') and \
+           not self.env.user.has_group('pharmacy_base.group_pharmacy_manager'):
+            from odoo.exceptions import UserError
+            raise UserError(_("Only Purchasing Officers or Pharmacy Managers can access consignment tracking."))
         self.ensure_one()
         # Removed the automatic sync to prevent unnecessary recalculations and data duplication
         # The real-time triggers in stock.move.line handle this accurately.

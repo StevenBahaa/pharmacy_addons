@@ -161,6 +161,9 @@ class StockQuant(models.Model):
         )
     
     def action_transfer_to_expired(self):
+        if not self.env.user.has_group('pharmacy_base.group_inventory_manager') and \
+           not self.env.user.has_group('pharmacy_base.group_pharmacy_manager'):
+            raise UserError(_("Only Inventory or Pharmacy Managers can transfer expired medicines."))
         if not self:
             raise UserError(_("No records selected."))
 
@@ -294,6 +297,9 @@ class StockQuant(models.Model):
     # ------------------------------------------------------------------ #
 
     def action_open_transfer_wizard(self):
+        if not self.env.user.has_group('pharmacy_base.group_inventory_manager') and \
+           not self.env.user.has_group('pharmacy_base.group_pharmacy_manager'):
+            raise UserError(_("You are not authorized to perform this action."))
         # self = whatever rows the user selected in the list
         expired = self.filtered(lambda q: q.is_expired and q.quantity > 0 and q.lot_id)
         if not expired:
@@ -307,6 +313,9 @@ class StockQuant(models.Model):
         }
 
     def action_open_export_wizard(self):
+        if not self.env.user.has_group('pharmacy_base.group_inventory_manager') and \
+           not self.env.user.has_group('pharmacy_base.group_pharmacy_manager'):
+            raise UserError(_("You are not authorized to perform this action."))
         return {
             'type': 'ir.actions.act_window',
             'res_model': 'expired.export.wizard',
@@ -315,6 +324,9 @@ class StockQuant(models.Model):
             'context': {},
         }
     def action_open_expired_report_wizard(self):
+        if not self.env.user.has_group('pharmacy_base.group_inventory_manager') and \
+           not self.env.user.has_group('pharmacy_base.group_pharmacy_manager'):
+            raise UserError(_("You are not authorized to perform this action."))
         return {
             'type': 'ir.actions.act_window',
             'res_model': 'expired.medicines.report.wizard',

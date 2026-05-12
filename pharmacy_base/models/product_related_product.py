@@ -67,6 +67,9 @@ class RelatedProduct(models.Model):
                 raise ValidationError(_('A product cannot be related to itself.'))
             
     def action_make_reciprocal(self):
+        if not self.env.user.has_group('pharmacy_base.group_product_config_manager') and \
+           not self.env.user.has_group('pharmacy_base.group_pharmacy_manager'):
+            raise UserError(_("Only Product Configuration Managers or Pharmacy Managers can link reciprocal products."))
         for rec in self :
             if not rec.product_id or not rec.related_product_id:
                 continue

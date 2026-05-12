@@ -365,17 +365,31 @@ class SaleOrderLine(models.Model):
                 product = self.env['product.template'].browse(product_id)
 
                 if product.max_qty_per_invoice and total_qty > product.max_qty_per_invoice:
-                    raise ValidationError(
-                        _(
-                            'You cannot sell more than %(max_qty)s packages of %(product)s '
-                            'in a single invoice/order.\n'
-                            'Current total: %(current_total)s'
-                        ) % {
-                            'max_qty': product.max_qty_per_invoice,
-                            'product': product.name,
-                            'current_total': total_qty,
-                        }
-                    )
+                    if self.env.user.has_group('pharmacy_base.group_pharmacy_manager') or \
+                       self.env.user.has_group('pharmacy_base.group_pharmacist'):
+                        # Log the override immutably
+                        self.env['pharmacy.audit.log'].sudo().create({
+                            'user_id': self.env.user.id,
+                            'model_name': 'sale.order',
+                            'res_id': order.id,
+                            'action_type': 'qty_override',
+                            'old_value': str(product.max_qty_per_invoice),
+                            'new_value': str(total_qty),
+                            'note': _('Max Qty Overridden for product: %s') % product.name,
+                        })
+                    else:
+                        raise ValidationError(
+                            _(
+                                'You cannot sell more than %(max_qty)s packages of %(product)s '
+                                'in a single invoice/order.\n'
+                                'Current total: %(current_total)s\n'
+                                'Only a Pharmacist or Pharmacy Manager can override this limit.'
+                            ) % {
+                                'max_qty': product.max_qty_per_invoice,
+                                'product': product.name,
+                                'current_total': total_qty,
+                            }
+                        )
 
     @api.onchange('product_id', 'product_uom', 'product_uom_qty', 'price_unit', 'discount')
     def _onchange_commission_preview(self):

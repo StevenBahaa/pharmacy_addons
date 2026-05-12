@@ -166,6 +166,9 @@ class PharmacyCount(models.Model):
             rec.state = 'in_progress'
 
     def action_validate(self):
+        if not self.env.user.has_group('pharmacy_base.group_inventory_manager') and \
+           not self.env.user.has_group('pharmacy_base.group_pharmacy_manager'):
+            raise UserError(_("Only Inventory or Pharmacy Managers can validate counts."))
         for rec in self:
             if rec.state not in ('draft', 'in_progress'):
                 raise UserError(_('Only Draft or In-Progress counts can be validated.'))
@@ -328,8 +331,11 @@ class PharmacyCount(models.Model):
         ).report_action(self)
 
     def action_export_discrepancy_excel(self):
-        """Generate XLSX discrepancy report and return as a downloadable binary attachment."""
+        """Generate XLSX discrepancy report and return as a downloadable binary attachment."""   
         self.ensure_one()
+        if not self.env.user.has_group('pharmacy_base.group_inventory_manager') and \
+           not self.env.user.has_group('pharmacy_base.group_pharmacy_manager'):
+            raise UserError(_("You are not authorized to export discrepancy reports."))
         import io, base64
         try:
             import xlsxwriter

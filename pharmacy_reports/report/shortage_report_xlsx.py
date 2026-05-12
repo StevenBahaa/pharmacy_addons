@@ -8,6 +8,12 @@ class ShortageReportXlsx(models.AbstractModel):
     _description = 'Pharmacy Shortage XLSX Report'
 
     def generate_xlsx_report(self, workbook, data, lines):
+        if not self.env.user.has_group('pharmacy_base.group_purchasing_officer') and \
+           not self.env.user.has_group('pharmacy_base.group_pharmacy_manager'):
+            from odoo.exceptions import AccessError
+            from odoo import _
+            raise AccessError(_("You are not authorized to export the Shortage Report."))
+
         # If called from the header button, 'data' contains the domain.
         # If called from the Actions menu with selected rows, 'lines' is used.
         if data and data.get('domain') is not None:

@@ -22,6 +22,7 @@
     'data': [
         'security/security.xml',
         'security/ir.model.access.csv',
+        'security/pharmacy_security_rules.xml',
         'data/ir_sequence_data.xml',
         'views/pharmacy_wishlist_views.xml',
         'views/res_users_views.xml',

@@ -19,6 +19,10 @@ class ConsignmentTrackWizard(models.TransientModel):
     )
 
     def action_create_payment_bill(self):
+        if not self.env.user.has_group('pharmacy_base.group_purchasing_officer') and \
+           not self.env.user.has_group('pharmacy_base.group_accounting_manager') and \
+           not self.env.user.has_group('pharmacy_base.group_pharmacy_manager'):
+            raise UserError("You are not authorized to create consignment vendor bills.")
         self.ensure_one()
 
         payable_lines = self.line_ids.filtered(lambda l: l.payable_now_qty > 0)
@@ -77,6 +81,9 @@ class ConsignmentTrackWizard(models.TransientModel):
         }
 
     def action_create_backorder(self):
+        if not self.env.user.has_group('pharmacy_base.group_purchasing_officer') and \
+           not self.env.user.has_group('pharmacy_base.group_pharmacy_manager'):
+            raise UserError("You are not authorized to request backorders.")
         self.ensure_one()
 
         pickings = self.purchase_order_id.picking_ids.filtered(

@@ -1,0 +1,79 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<odoo>
+    <record id="view_pharmacy_audit_log_tree" model="ir.ui.view">
+        <field name="name">pharmacy.audit.log.tree</field>
+        <field name="model">pharmacy.audit.log</field>
+        <field name="arch" type="xml">
+            <list string="Security Audit Logs" create="false" edit="false" delete="false">
+                <field name="timestamp"/>
+                <field name="user_id"/>
+                <field name="action_type"/>
+                <field name="model_name"/>
+                <field name="res_id"/>
+                <field name="old_value"/>
+                <field name="new_value"/>
+            </list>
+        </field>
+    </record>
+
+    <record id="view_pharmacy_audit_log_form" model="ir.ui.view">
+        <field name="name">pharmacy.audit.log.form</field>
+        <field name="model">pharmacy.audit.log</field>
+        <field name="arch" type="xml">
+            <form string="Security Audit Log" create="false" edit="false" delete="false">
+                <sheet>
+                    <group>
+                        <group>
+                            <field name="timestamp"/>
+                            <field name="user_id"/>
+                            <field name="action_type"/>
+                        </group>
+                        <group>
+                            <field name="model_name"/>
+                            <field name="res_id"/>
+                        </group>
+                    </group>
+                    <group string="Changes">
+                        <field name="old_value"/>
+                        <field name="new_value"/>
+                    </group>
+                    <group string="Notes">
+                        <field name="note"/>
+                    </group>
+                </sheet>
+            </form>
+        </field>
+    </record>
+
+    <record id="view_pharmacy_audit_log_search" model="ir.ui.view">
+        <field name="name">pharmacy.audit.log.search</field>
+        <field name="model">pharmacy.audit.log</field>
+        <field name="arch" type="xml">
+            <search string="Security Audit Logs">
+                <field name="user_id"/>
+                <field name="model_name"/>
+                <field name="action_type"/>
+                <filter name="today" string="Today" domain="[('timestamp', '&gt;=', datetime.datetime.combine(context_today(), datetime.time(0,0,0))), ('timestamp', '&lt;=', datetime.datetime.combine(context_today(), datetime.time(23,59,59)))]"/>
+                <group expand="0" string="Group By">
+                    <filter name="group_by_user" string="User" context="{'group_by': 'user_id'}"/>
+                    <filter name="group_by_action" string="Action" context="{'group_by': 'action_type'}"/>
+                    <filter name="group_by_model" string="Model" context="{'group_by': 'model_name'}"/>
+                </group>
+            </search>
+        </field>
+    </record>
+
+    <record id="action_pharmacy_audit_log" model="ir.actions.act_window">
+        <field name="name">Security Audit Logs</field>
+        <field name="res_model">pharmacy.audit.log</field>
+        <field name="view_mode">list,form</field>
+        <field name="search_view_id" ref="view_pharmacy_audit_log_search"/>
+    </record>
+
+    <menuitem id="menu_pharmacy_audit_log"
+              name="Security Audit Logs"
+              parent="pharmacy_base.menu_pharmacy_config"
+              action="action_pharmacy_audit_log"
+              sequence="100"
+              groups="pharmacy_base.group_pharmacy_manager,pharmacy_base.group_compliance_manager"/>
+</odoo>
