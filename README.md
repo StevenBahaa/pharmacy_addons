@@ -1,5 +1,9 @@
 # Pharmacy Management System for Odoo 18 Community
 
+![Odoo](https://img.shields.io/badge/Odoo-18.0-purple)
+![License](https://img.shields.io/badge/License-LGPL--3-blue)
+![Python](https://img.shields.io/badge/Python-3.10+-green)
+
 A robust, modular ecosystem of Odoo addons designed to handle the complexities of pharmaceutical retail, inventory management, and regulatory compliance.
 
 ---
@@ -25,7 +29,7 @@ The **Pharmacy Management System** is a specialized suite for Odoo 18 Community 
 
 ## 🏗️ 4. Module Structure
 
-The system follows a strict **Hub-and-Spoke** dependency model.
+The system follows a strict **Hub-and-Spoke** modular architecture.
 
 > [!IMPORTANT]
 > **[pharmacy_base](./pharmacy_base)** is the foundation of the entire suite. It centralizes all pharmacy-specific security groups (Pharmacist, Technician, Manager) and foundational data. **All other feature modules depend on `pharmacy_base`** to ensure consistent access control.
@@ -65,35 +69,35 @@ pip install xlsxwriter
 
 ### 🛠️ General Configuration
 
-- [ ] **Security Groups**: Map users to `Pharmacy / Pharmacist`, `Pharmacy / Technician`, and `Pharmacy / Manager` roles in **Settings > Users**.
+* [ ] **Security Groups**: Map users to `Pharmacy / Pharmacist`, `Pharmacy / Technician`, and `Pharmacy / Manager` roles in **Settings > Users**.
 * [ ] **Multi-Branch Setup**: Configure Branches and Warehouses to ensure proper data isolation via record rules.
 
 ### 📦 Inventory & Expiry
 
-- [ ] **Quarantine Location**: Create or designate a specific location as "Expired" in **Inventory > Configuration > Locations**.
+* [ ] **Quarantine Location**: Create or designate a specific location as "Expired" in **Inventory > Configuration > Locations**.
 * [ ] **Expiry Detection**: Configure the `Pharmacy: Detection of Expired Lots` cron job frequency (Daily recommended).
 * [ ] **Lot Tracking**: Ensure "Lots & Serial Numbers" is enabled in Inventory Settings; verify lot-tracking on high-value products.
 
 ### 🛒 Point of Sale (POS)
 
-- [ ] **Safety Warnings**: Flag scheduled medicines in the product template to trigger cashier alerts at checkout.
+* [ ] **Safety Warnings**: Flag scheduled medicines in the product template to trigger cashier alerts at checkout.
 * [ ] **Shared Barcodes**: Enable and test reciprocal barcode mapping for interchangeable generic brands.
 
 ### 💳 Purchase & Procurement
 
-- [ ] **Low-Stock Triggers**: Set reordering rules and verify "Shortage List" automated population.
+* [ ] **Low-Stock Triggers**: Set reordering rules and verify "Shortage List" automated population.
 * [ ] **Vendor Terms**: Configure consignment vendors and link them to designated tracking locations.
 * [ ] **Discount History**: Review initial purchase price logs to establish a baseline for discount tracking.
 
 ### 🔐 Reporting & Security
 
-- [ ] **Export Permissions**: Restrict XLSX/PDF export capabilities to `Pharmacy / Manager` or higher roles.
+* [ ] **Export Permissions**: Restrict XLSX/PDF export capabilities to `Pharmacy / Manager` or higher roles.
 * [ ] **Audit Logging**: Verify that changes to sensitive fields (e.g., product prices, stock adjustments) are being captured in **Pharmacy > Configuration > Audit Logs**.
 * [ ] **Record Rules**: Test location-based visibility to ensure branch data remains isolated.
 
 ### 🧪 Recommended Validation Scenarios
 
-- [ ] **Scenario 1**: Attempt to sell an expired lot (should trigger a POS warning/block).
+* [ ] **Scenario 1**: Attempt to sell an expired lot (should trigger a POS warning/block).
 * [ ] **Scenario 2**: Log in as a `Technician` and attempt to view supplier purchase costs (should be hidden).
 * [ ] **Scenario 3**: Run a "Periodic Count" and verify that a discrepancy report generates an audit trail entry.
 
@@ -106,13 +110,18 @@ The suite implements a "Security-First" design:
 * **Field-Level Protection**: Sensitive financial data (e.g., product costs) is restricted to management roles.
 * **Method Hardening**: Critical backend operations (validation, scrapping) are protected by explicit group checks.
 
+## 🔒 Security Documentation
+
+Detailed RBAC roles, ACL behavior, record rules, and operational security architecture documentation can be found here:
+
+- [Security & Roles Documentation](docs/security/security-roles.md)
+
 ## 🧪 8. Testing / Validation
 
 Each module includes a `tests/` directory covering:
 
 * **Logic Verification**: Unit tests for expiry logic and inventory calculations.
 * **Security Validation**: Negative tests ensuring restricted users cannot bypass ACLs.
-* **UI Tours**: Automated tours for the POS and Inventory Count workflows.
 
 **Run all tests:**
 
@@ -122,22 +131,67 @@ python3 odoo-bin -c your_config.conf -i pharmacy_system --test-enable --stop-aft
 
 ## 📸 9. Screenshots
 
-*(Placeholders for system visuals)*
+> Real screenshots from the pharmacy demo environment.
 
-### POS Safety Warnings
+---
 
-![POS Warning Placeholder](https://via.placeholder.com/800x400?text=POS+Controlled+Substance+Warning)
-*Alert triggered when a scheduled medicine is added to the cart.*
+### 🛒 POS Safety Warning
 
-### Expired Medicines Management
+<p align="center">
+  <img src="docs/screenshots/POS_Safety_Warning.png" width="100%">
+</p>
 
-![Expired Medicines Placeholder](https://via.placeholder.com/800x400?text=Expired+Medicines+Dashboard)
-*Unified view of quarantined stock and upcoming expiries.*
+*Warning popup triggered when a scheduled or controlled medicine is added during checkout.*
 
-### Consumption Forecast Dashboard
+---
 
-![Forecast Placeholder](https://via.placeholder.com/800x400?text=Inventory+Forecast+Dashboard)
-*AI-driven stock level predictions based on historical sales.*
+### 📦 Expired & Near-Expiry Management
+
+<p align="center">
+  <img src="docs/screenshots/Expired_Medicines.png" width="100%">
+</p>
+
+*Management dashboard for expired lots, near-expiry stock, quarantine workflows, and expiry transfers.*
+
+---
+
+### 📊 Forecast & Shortage Monitoring
+
+<p align="center">
+  <img src="docs/screenshots/Forecast_Dashboard.png" width="100%">
+</p>
+
+*Consumption forecasting, shortage analysis, reorder recommendations, and operational stock monitoring.*
+
+---
+
+### 💊 Pharmacy Product Configuration
+
+<p align="center">
+  <img src="docs/screenshots/Pharmacy_product.png" width="100%">
+</p>
+
+*Pharmacy product configuration including UoM setup, lot tracking, expiry settings, and operational pharmacy fields.*
+
+---
+
+### 🧾 Inventory Count & Reconciliation
+
+<p align="center">
+  <img src="docs/screenshots/Periodic_inventory.png" width="100%">
+</p>
+
+*Periodic inventory counting workflow with discrepancy handling, quantity adjustments, and audit tracking.*
+
+---
+
+### 🚚 Consignment Purchase & Tracking
+
+<p align="center">
+  <img src="docs/screenshots/Consignment_procurement.png" width="100%">
+</p>
+
+*Consignment procurement workflow including stock ownership tracking, vendor management, and operational monitoring.*
 
 ## 📄 10. License
 
