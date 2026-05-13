@@ -114,7 +114,7 @@ The suite implements a "Security-First" design:
 
 Detailed RBAC roles, ACL behavior, record rules, and operational security architecture documentation can be found here:
 
-- [Security & Roles Documentation](docs/security/security-roles.md)
+- [Security & Roles Documentation](docs/SECURITY_ROLES.md)
 
 ## 🧪 8. Testing / Validation
 
