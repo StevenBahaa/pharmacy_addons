@@ -15,6 +15,17 @@ class StockQuant(models.Model):
         store=True,
     )
 
+    x_use_expiration_date = fields.Boolean(
+        string='Use Expiration Date',
+        compute='_compute_x_use_expiration_date',
+        readonly=True,
+    )
+
+    @api.depends('product_id', 'product_id.use_expiration_date', 'product_id.tracking')
+    def _compute_x_use_expiration_date(self):
+        for rec in self:
+            rec.x_use_expiration_date = rec.product_id.use_expiration_date and rec.product_id.tracking != 'none'
+
     x_transfer = fields.Boolean(string="Transfer (تحويل)")
     is_expired = fields.Boolean(
         string="Is Expired",

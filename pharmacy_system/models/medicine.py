@@ -108,6 +108,7 @@ class ProductTemplate(models.Model):
         'product.price.history',
         'product_id',
         string='Price History',
+        groups="pharmacy_base.group_pharmacy_manager",
     )
 
     currency_display_price = fields.Monetary(
@@ -329,8 +330,10 @@ class ProductTemplate(models.Model):
         if not self.id:
             if self.x_classification == 'medicine':
                 self.tracking = 'lot'
+                self.use_expiration_date = True
             elif self.x_classification == 'non_medicine':
                 self.tracking = 'none'
+                self.use_expiration_date = False
 
     # =========================================================================
     # UoM Onchanges are now handled in pharmacy_base
@@ -537,8 +540,9 @@ class ProductTemplate(models.Model):
 
     def _compute_expired_qty(self):
         for template in self:
+            # Variants computation uses sudo() in product_product.py or here
             template.qty_expired = sum(
-                template.product_variant_ids.mapped('qty_expired')
+                template.product_variant_ids.sudo().mapped('qty_expired')
             )
 
     def action_open_expired_stock(self):
@@ -657,7 +661,9 @@ class ProductProduct(models.Model):
 
     def _compute_expired_qty(self):
         for product in self:
-            quants = self.env['stock.quant'].search([
+            # We use sudo() here because is_expired_location is group-restricted
+            # but we need it for stock calculations for all users.
+            quants = self.env['stock.quant'].sudo().search([
                 ('product_id', '=', product.id),
                 ('location_id.is_expired_location', '=', True)
             ])
@@ -697,7 +703,8 @@ class ProductProduct(models.Model):
 
         for product in self:
             # remove expired stock from results
-            expired_quants = self.env['stock.quant'].search([
+            # We use sudo() here because is_expired_location is group-restricted
+            expired_quants = self.env['stock.quant'].sudo().search([
                 ('product_id', '=', product.id),
                 ('location_id.is_expired_location', '=', True)
             ])

@@ -11,7 +11,9 @@ class ProductProduct(models.Model):
 
     def _compute_expired_qty(self):
         for product in self:
-            quants = self.env['stock.quant'].search([
+            # We use sudo() here because is_expired_location is group-restricted
+            # but we need it for stock calculations for all users.
+            quants = self.env['stock.quant'].sudo().search([
                 ('product_id', '=', product.id),
                 ('location_id.is_expired_location', '=', True),
             ])
@@ -42,7 +44,9 @@ class ProductProduct(models.Model):
         )
 
         for product in self:
-            expired_quants = self.env['stock.quant'].search([
+            # We use sudo() here because is_expired_location is group-restricted
+            # but we need it for stock calculations for all users.
+            expired_quants = self.env['stock.quant'].sudo().search([
                 ('product_id', '=', product.id),
                 ('location_id.is_expired_location', '=', True),
             ])

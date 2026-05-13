@@ -16,7 +16,21 @@ class StockLot (models.Model):
         help='Enter expiry date as MM/YYYY. The system will store it as the last day of that month.',
     )
 
-   
+    x_use_expiration_date = fields.Boolean(
+        string='Use Expiration Date',
+        compute='_compute_x_use_expiration_date',
+        readonly=True,
+    )
+
+    @api.depends('product_id', 'product_id.use_expiration_date', 'product_id.tracking', 'product_id.product_tmpl_id.x_classification')
+    def _compute_x_use_expiration_date(self):
+        for rec in self:
+            rec.x_use_expiration_date = (
+                rec.product_id.use_expiration_date 
+                and rec.product_id.tracking != 'none' 
+                and rec.product_id.product_tmpl_id.x_classification == 'medicine'
+            )
+
     expiry_date = fields.Date(
         string="Expiry Date",
         compute="_compute_expiry_date",

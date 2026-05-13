@@ -9,7 +9,6 @@ class StockLocation(models.Model):
     is_expired_location = fields.Boolean(
         string="Expired Location",
         help="Designates a location used to store expired products.",
-        groups="pharmacy_base.group_inventory_manager,pharmacy_base.group_pharmacy_manager"
     )
     expired_label = fields.Char(compute="_compute_expired_label")
 

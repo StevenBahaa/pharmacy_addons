@@ -39,6 +39,21 @@ class StockQuant(models.Model):
         compute="_compute_transfer_status",
     )
 
+    x_use_expiration_date = fields.Boolean(
+        string='Use Pharmacy Expiry Date',
+        compute='_compute_x_use_expiration_date',
+        readonly=True,
+    )
+
+    @api.depends('product_id', 'product_id.use_expiration_date', 'product_id.tracking', 'product_id.product_tmpl_id.x_classification')
+    def _compute_x_use_expiration_date(self):
+        for rec in self:
+            rec.x_use_expiration_date = (
+                rec.product_id.use_expiration_date 
+                and rec.product_id.tracking != 'none' 
+                and rec.product_id.product_tmpl_id.x_classification == 'medicine'
+            )
+
     @api.depends('is_expired', 'expiring_days')
     def _compute_transfer_status(self):
         for rec in self:

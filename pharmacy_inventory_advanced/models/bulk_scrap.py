@@ -13,11 +13,12 @@ class PharmacyBulkScrap(models.Model):
     line_ids = fields.One2many('pharmacy.bulk.scrap.line', 'bulk_id', string='Scrap Lines')
     state = fields.Selection([('draft', 'Draft'), ('done', 'Validated')], default='draft')
 
-    @api.model
-    def create(self, vals):
-        if vals.get('name', _('New')) == _('New'):
-            vals['name'] = self.env['ir.sequence'].next_by_code('pharmacy.bulk.scrap') or _('New')
-        return super(PharmacyBulkScrap, self).create(vals)
+    @api.model_create_multi
+    def create(self, vals_list):
+        for vals in vals_list:
+            if vals.get('name', _('New')) == _('New'):
+                vals['name'] = self.env['ir.sequence'].next_by_code('pharmacy.bulk.scrap') or _('New')
+        return super(PharmacyBulkScrap, self).create(vals_list)
 
     def action_validate(self):
         if not self.env.user.has_group('pharmacy_base.group_inventory_manager') and \

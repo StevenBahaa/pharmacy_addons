@@ -70,7 +70,7 @@
                             string="Force Confirm (Manager)"
                             class="btn-warning"
                             invisible="all_available"
-                            groups="pharmacy_stock_reservation.group_pharmacy_inventory_manager"
+                            groups="pharmacy_base.group_inventory_manager"
                             confirm="Stock is insufficient for one or more lines. Force confirm anyway?"/>
                     <button string="Cancel"
                             class="btn-secondary"

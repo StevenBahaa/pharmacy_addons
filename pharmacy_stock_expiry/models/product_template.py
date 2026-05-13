@@ -11,8 +11,9 @@ class ProductTemplate(models.Model):
 
     def _compute_expired_qty(self):
         for template in self:
+            # Variants computation already uses sudo()
             template.qty_expired = sum(
-                template.product_variant_ids.mapped('qty_expired')
+                template.product_variant_ids.sudo().mapped('qty_expired')
             )
 
     def action_open_expired_stock(self):

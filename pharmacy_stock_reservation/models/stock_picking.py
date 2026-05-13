@@ -121,7 +121,7 @@ class StockPicking(models.Model):
         """Open the Force Unreserve wizard (Inventory Manager only)."""
         self.ensure_one()
         if not self.env.user.has_group(
-            'pharmacy_stock_reservation.group_pharmacy_inventory_manager'
+            'pharmacy_base.group_inventory_manager'
         ):
             raise UserError(_("Only Inventory Managers can force-unreserve stock."))
         return {

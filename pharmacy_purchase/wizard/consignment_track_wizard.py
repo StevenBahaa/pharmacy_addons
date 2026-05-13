@@ -135,6 +135,12 @@ class ConsignmentTrackWizardLine(models.TransientModel):
         readonly=True,
     )
 
+    x_use_expiration_date = fields.Boolean(
+        related='product_id.use_expiration_date',
+        string='Use Expiration Date',
+        readonly=True,
+    )
+
     expiry_date = fields.Date(readonly=True)
     expiry_display = fields.Char(string='Expiry', compute='_compute_expiry_display')
 

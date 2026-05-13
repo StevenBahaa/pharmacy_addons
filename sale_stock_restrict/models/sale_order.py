@@ -74,7 +74,7 @@ class SaleOrder(models.Model):
             check_stock = self.env[
                 'ir.config_parameter'].sudo().get_param(
                 'sale_stock_restrict.check_stock')
-            if (product_restriction and not self.website_id and
+            if (product_restriction and
                     rec.product_id.type == 'consu'):
                 if (check_stock == 'on_hand_quantity' and
                         rec.product_uom_qty > rec.qty_available):

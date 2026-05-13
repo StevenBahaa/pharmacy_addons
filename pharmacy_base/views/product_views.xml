@@ -161,6 +161,7 @@
                     <button name="action_generate_random_barcode"
                             string="Generate Random Barcode"
                             type="object"
+                            form_novalidate="1"
                             class="btn btn-secondary btn-sm"/>
                 </div>
 
@@ -176,7 +177,7 @@
             </xpath>
 
             <xpath expr="//field[@name='barcode']" position="attributes">
-                <attribute name="invisible">1</attribute>
+                <attribute name="invisible">type in ('service', 'combo')</attribute>
             </xpath>
         </field>
     </record>

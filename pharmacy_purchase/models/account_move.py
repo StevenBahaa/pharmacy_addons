@@ -108,12 +108,28 @@ class AccountMoveLine(models.Model):
 
     def write(self, vals):
         protected_fields = ['quantity', 'price_unit', 'discount', 'product_id', 'account_id', 'partner_id']
-        if any(f in vals for f in protected_fields):
-            for line in self:
-                if line.is_consignment_payment_line and line.move_id.is_consignment_bill and line.move_id.state != 'cancel':
-                    raise UserError(
-                        "You cannot change critical fields (quantity, price, discount, product, account, vendor) of a consignment bill line."
-                    )
+        
+        for line in self:
+            if line.is_consignment_payment_line and line.move_id.is_consignment_bill and line.move_id.state != 'cancel':
+                for f in protected_fields:
+                    if f in vals:
+                        old_val = line[f]
+                        if hasattr(old_val, 'id'):
+                            old_val = old_val.id
+                        new_val = vals[f]
+                        
+                        if not old_val and not new_val:
+                            continue
+                            
+                        if isinstance(old_val, float) or isinstance(new_val, float):
+                            if abs(float(old_val or 0.0) - float(new_val or 0.0)) < 0.0001:
+                                continue
+                                
+                        if old_val != new_val:
+                            raise UserError(
+                                f"You cannot change critical fields ({f}) of a consignment bill line."
+                            )
+                            
         return super().write(vals)
 
     @api.ondelete(at_uninstall=False)

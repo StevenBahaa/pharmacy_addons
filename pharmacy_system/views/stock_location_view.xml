@@ -1,30 +1,4 @@
 <?xml version="1.0" encoding="UTF-8"?>
 <odoo>
-    <record id="view_location_form_inherit_expired" model="ir.ui.view">
-        <field name="name">stock.location.form.expired</field>
-        <field name="model">stock.location</field>
-        <field name="inherit_id" ref="stock.view_location_form"/>
-        <field name="arch" type="xml">
-            <xpath expr="//field[@name='usage']" position="after">
-                <field name="is_expired_location" widget="boolean_toggle"/>
-            </xpath>
-        </field>
-    </record>
-
-
-    <record id="view_location_tree_inherit_expired_row" model="ir.ui.view">
-        <field name="name">stock.location.tree.expired.row</field>
-        <field name="model">stock.location</field>
-        <field name="inherit_id" ref="stock.view_location_tree2"/>
-        <field name="arch" type="xml">
-            <!-- Row color -->
-            <xpath expr="//list" position="attributes">
-                <attribute name="decoration-danger">is_expired_location</attribute>
-            </xpath>
-            <!-- Badge -->
-            <xpath expr="//list" position="inside">
-                <field name="expired_label" widget="badge" decoration-danger="is_expired_location"/>
-            </xpath>
-        </field>
-    </record>
+    <!-- Views moved to pharmacy_stock_expiry -->
 </odoo>

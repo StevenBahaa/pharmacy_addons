@@ -135,11 +135,14 @@ class ProductTemplate(models.Model):
 
     @api.onchange('x_classification')
     def _onchange_x_classification(self):
-        if not self.id:
-            if self.x_classification == 'medicine':
-                self.tracking = 'lot'
-            elif self.x_classification == 'non_medicine':
-                self.tracking = 'none'
+        if self.x_classification == 'medicine':
+            self.tracking = 'lot'
+            if 'use_expiration_date' in self._fields:
+                self.use_expiration_date = True
+        elif self.x_classification == 'non_medicine':
+            self.tracking = 'none'
+            if 'use_expiration_date' in self._fields:
+                self.use_expiration_date = False
 
     @api.model
     def default_get(self, fields_list):

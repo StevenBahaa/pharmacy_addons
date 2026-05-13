@@ -7,25 +7,32 @@ class StockMoveLine(models.Model):
 
     def _action_done(self):
         res = super()._action_done()
+        import logging
+        _logger = logging.getLogger(__name__)
         for ml in self:
-            if ml.state != 'done' or ml.x_is_consignment_processed:
+            _logger.info("StockMoveLine _action_done: ml=%s, state=%s, processed=%s, picking=%s", ml.id, ml.state, ml.x_is_consignment_processed, ml.picking_id.id if ml.picking_id else None)
+            if ml.x_is_consignment_processed:
                 continue
                 
             picking = ml.picking_id
             if not picking:
+                _logger.info("Skipping ml=%s because no picking", ml.id)
                 continue
 
             processed = False
             
+            _logger.info("picking code: %s, location_dest_usage: %s", picking.picking_type_id.code, ml.location_dest_id.usage)
             # 1. Consignment Outgoing Moves
-            if picking.picking_type_id.code == 'outgoing' and ml.owner_id:
+            if picking.picking_type_id.code == 'outgoing':
                 if ml.location_dest_id.usage == 'supplier':
                     # Return to Vendor
                     ml._update_consignment_return_qty()
+                    processed = True
                 else:
                     # Consignment Sale (to customer or internal consumption)
+                    _logger.info("Calling _update_consignment_sale_qty for ml=%s", ml.id)
                     ml._update_consignment_sale_qty()
-                processed = True
+                    processed = True
 
             # 2. Consignment Incoming Moves (Customer Return or PO Receipt)
             if not processed and picking.picking_type_id.code == 'incoming':
@@ -42,6 +49,7 @@ class StockMoveLine(models.Model):
             
             if processed:
                 ml.x_is_consignment_processed = True
+                _logger.info("Marked ml=%s as processed", ml.id)
                     
         return res
 
@@ -109,10 +117,7 @@ class StockMoveLine(models.Model):
             ('remaining_qty', '>', 0)
         ]
         
-        if warehouse_id:
-            domain.append(('purchase_order_id.picking_type_id.warehouse_id', '=', warehouse_id))
-
-        # Match by product + vendor owner + lot + warehouse
+        # Match by product + vendor owner + lot
         # We search for the oldest consignment line that has remaining quantity
         cons_lines = self.env['pharmacy.consignment.stock.line'].search(domain, order='id asc')
 
@@ -155,9 +160,6 @@ class StockMoveLine(models.Model):
             ('sold_qty', '>', 0)
         ]
         
-        if warehouse_id:
-            domain.append(('purchase_order_id.picking_type_id.warehouse_id', '=', warehouse_id))
-
         # Deduct from the newest tracking lines first (LIFO for returns)
         cons_lines = self.env['pharmacy.consignment.stock.line'].search(domain, order='id desc')
 

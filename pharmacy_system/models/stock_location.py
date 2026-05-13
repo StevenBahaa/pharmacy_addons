@@ -10,7 +10,6 @@ class StockLocation(models.Model):
     is_expired_location = fields.Boolean(
         string="Expired Location",
         help="Designates a location used to store expired products.",
-        # groups="your_module.group_expired_location_manager"
     )
     expired_label = fields.Char(compute="_compute_expired_label")
 
@@ -41,11 +40,12 @@ class StockLocation(models.Model):
     def _onchange_usage_expired(self):
         for rec in self:
             rec.is_expired_location = (rec.usage == 'expired')
-    @api.model
-    def create(self, vals):
-        if vals.get('usage') == 'expired':
-            vals['is_expired_location'] = True
-        return super().create(vals)
+    @api.model_create_multi
+    def create(self, vals_list):
+        for vals in vals_list:
+            if vals.get('usage') == 'expired':
+                vals['is_expired_location'] = True
+        return super().create(vals_list)
     def write(self, vals):
         if 'usage' in vals:
             vals['is_expired_location'] = (vals['usage'] == 'expired')

@@ -26,11 +26,15 @@ class ProductTemplate(models.Model):
         for record in self:
             random_base = ''.join([str(random.randint(0, 9)) for _ in range(12)])
             new_barcode = self._generate_ean13_value(random_base)
-            self.env['product.barcode.line'].create({
-                'name': new_barcode,
-                'product_id': record.id,
-                'barcode_type': 'random'
-            })
+            
+            if not record.barcode:
+                record.barcode = new_barcode
+            else:
+                self.env['product.barcode.line'].create({
+                    'name': new_barcode,
+                    'product_id': record.id,
+                    'barcode_type': 'random'
+                })
 
     def _generate_ean13_value(self, base):
         if len(base) != 12: return base

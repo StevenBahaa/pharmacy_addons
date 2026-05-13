@@ -16,8 +16,9 @@
                             <field name="line_ids" nolabel="1">
                                 <list create="0" edit="0" delete="0">
                                     <field name="product_id" string="Product" />
-                                    <field name="lot_id" string="Lot/Batch" />
-                                    <field name="expiry_display" string="Expiry" />
+                                    <field name="x_use_expiration_date" column_invisible="1" />
+                                    <field name="lot_id" string="Lot/Batch" invisible="not x_use_expiration_date" />
+                                    <field name="expiry_display" string="Expiry" invisible="not x_use_expiration_date" />
                                     <field name="received_qty" string="Received" sum="Total Received" />
                                     <field name="sold_qty" string="Sold" sum="Total Sold" />
                                     <field name="already_billed_qty" string="Billed" sum="Total Billed" />

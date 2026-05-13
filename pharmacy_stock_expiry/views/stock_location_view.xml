@@ -6,7 +6,7 @@
         <field name="inherit_id" ref="stock.view_location_form"/>
         <field name="arch" type="xml">
             <xpath expr="//field[@name='usage']" position="after">
-                <field name="is_expired_location" widget="boolean_toggle"/>
+                <field name="is_expired_location" widget="boolean_toggle" groups="pharmacy_base.group_inventory_manager,pharmacy_base.group_pharmacy_manager"/>
             </xpath>
         </field>
     </record>
@@ -17,13 +17,11 @@
         <field name="model">stock.location</field>
         <field name="inherit_id" ref="stock.view_location_tree2"/>
         <field name="arch" type="xml">
-            <!-- Row color -->
-            <xpath expr="//list" position="attributes">
-                <attribute name="decoration-danger">is_expired_location</attribute>
-            </xpath>
+            <!-- Row color — removed: is_expired_location is group-restricted,
+                 the expired_label badge provides the visual cue instead -->
             <!-- Badge -->
             <xpath expr="//list" position="inside">
-                <field name="expired_label" widget="badge" decoration-danger="is_expired_location"/>
+                <field name="expired_label" widget="badge" decoration-danger="is_expired_location" groups="pharmacy_base.group_inventory_manager,pharmacy_base.group_pharmacy_manager"/>
             </xpath>
         </field>
     </record>

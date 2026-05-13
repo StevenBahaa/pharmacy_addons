@@ -55,7 +55,7 @@
                             type="object"
                             string="Force Unreserve"
                             class="btn-warning"
-                            groups="pharmacy_stock_reservation.group_pharmacy_inventory_manager"/>
+                            groups="pharmacy_base.group_inventory_manager"/>
                     <button string="Cancel"
                             class="btn-secondary"
                             special="cancel"/>

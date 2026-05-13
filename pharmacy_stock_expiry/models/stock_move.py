@@ -12,6 +12,21 @@ from odoo.exceptions import UserError, ValidationError
 class StockMove(models.Model):
     _inherit = 'stock.move'
 
+    x_use_expiration_date = fields.Boolean(
+        string='Use Pharmacy Expiry Date',
+        compute='_compute_x_use_expiration_date',
+        readonly=True,
+    )
+
+    @api.depends('product_id', 'product_id.use_expiration_date', 'product_id.tracking', 'product_id.product_tmpl_id.x_classification')
+    def _compute_x_use_expiration_date(self):
+        for move in self:
+            move.x_use_expiration_date = (
+                move.product_id.use_expiration_date 
+                and move.product_id.tracking != 'none' 
+                and move.product_id.product_tmpl_id.x_classification == 'medicine'
+            )
+
     def _action_done(self, cancel_backorder=False):
         res = super()._action_done(cancel_backorder=cancel_backorder)
         for move in self:
@@ -65,10 +80,19 @@ class StockMoveLine(models.Model):
         readonly=True,
     )
     x_use_expiration_date = fields.Boolean(
-        related='product_id.product_tmpl_id.use_expiration_date',
         string='Use Pharmacy Expiry Date',
+        compute='_compute_x_use_expiration_date',
         readonly=True,
     )
+
+    @api.depends('product_id', 'product_id.use_expiration_date', 'product_id.tracking', 'product_id.product_tmpl_id.x_classification')
+    def _compute_x_use_expiration_date(self):
+        for line in self:
+            line.x_use_expiration_date = (
+                line.product_id.use_expiration_date 
+                and line.product_id.tracking != 'none' 
+                and line.product_id.product_tmpl_id.x_classification == 'medicine'
+            )
 
     @api.depends('lot_id', 'lot_id.x_expiry_month_year')
     def _compute_x_expiry_month_year(self):

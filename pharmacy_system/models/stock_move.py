@@ -398,10 +398,19 @@ class StockMoveLine(models.Model):
     )
 
     x_use_expiration_date = fields.Boolean(
-        related='product_id.product_tmpl_id.use_expiration_date',
+        compute='_compute_x_use_expiration_date',
         string='Use Expiration Date',
         readonly=True,
     )
+
+    @api.depends('product_id', 'product_id.use_expiration_date', 'product_id.tracking', 'product_id.product_tmpl_id.x_classification')
+    def _compute_x_use_expiration_date(self):
+        for line in self:
+            line.x_use_expiration_date = (
+                line.product_id.use_expiration_date 
+                and line.product_id.tracking != 'none' 
+                and line.product_id.product_tmpl_id.x_classification == 'medicine'
+            )
 
     def _normalize_expiry_month_year(self, expiry_month_year):
         if not expiry_month_year:

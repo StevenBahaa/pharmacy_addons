@@ -50,7 +50,7 @@
                         type="object"
                         string="Force Unreserve"
                         class="btn-warning"
-                        groups="pharmacy_stock_reservation.group_pharmacy_inventory_manager"
+                        groups="pharmacy_base.group_inventory_manager"
                         invisible="not has_pharmacy_reservation"
                         confirm="This will release all reservations and create an audit log entry. Continue?"/>
             </header>
