@@ -18,13 +18,12 @@ class StockMove(models.Model):
         readonly=True,
     )
 
-    @api.depends('product_id', 'product_id.use_expiration_date', 'product_id.tracking', 'product_id.product_tmpl_id.x_classification')
+    @api.depends('product_id', 'product_id.use_expiration_date', 'product_id.tracking')
     def _compute_x_use_expiration_date(self):
-        for move in self:
-            move.x_use_expiration_date = (
-                move.product_id.use_expiration_date 
-                and move.product_id.tracking != 'none' 
-                and move.product_id.product_tmpl_id.x_classification == 'medicine'
+        for rec in self:
+            rec.x_use_expiration_date = (
+                rec.product_id.use_expiration_date 
+                and rec.product_id.tracking != 'none'
             )
 
     def _action_done(self, cancel_backorder=False):
@@ -85,13 +84,12 @@ class StockMoveLine(models.Model):
         readonly=True,
     )
 
-    @api.depends('product_id', 'product_id.use_expiration_date', 'product_id.tracking', 'product_id.product_tmpl_id.x_classification')
+    @api.depends('product_id', 'product_id.use_expiration_date', 'product_id.tracking')
     def _compute_x_use_expiration_date(self):
-        for line in self:
-            line.x_use_expiration_date = (
-                line.product_id.use_expiration_date 
-                and line.product_id.tracking != 'none' 
-                and line.product_id.product_tmpl_id.x_classification == 'medicine'
+        for rec in self:
+            rec.x_use_expiration_date = (
+                rec.product_id.use_expiration_date 
+                and rec.product_id.tracking != 'none'
             )
 
     @api.depends('lot_id', 'lot_id.x_expiry_month_year')

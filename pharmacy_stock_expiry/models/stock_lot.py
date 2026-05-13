@@ -12,6 +12,9 @@ class StockLot(models.Model):
     x_expiry_month_year = fields.Char(
         string='Expiry Date (MM/YYYY)',
         help='Enter expiry date as MM/YYYY. The system will store it as the last day of that month.',
+        compute='_compute_x_expiry_month_year',
+        inverse='_inverse_x_expiry_month_year',
+        store=True,
     )
 
     expiry_date = fields.Date(
@@ -33,37 +36,54 @@ class StockLot(models.Model):
         readonly=True,
     )
 
-    @api.depends('product_id', 'product_id.use_expiration_date', 'product_id.tracking', 'product_id.product_tmpl_id.x_classification')
+    @api.depends('product_id', 'product_id.use_expiration_date', 'product_id.tracking')
     def _compute_x_use_expiration_date(self):
         for rec in self:
             rec.x_use_expiration_date = (
                 rec.product_id.use_expiration_date 
-                and rec.product_id.tracking != 'none' 
-                and rec.product_id.product_tmpl_id.x_classification == 'medicine'
+                and rec.product_id.tracking != 'none'
             )
 
-    @api.depends('x_expiry_month_year')
-    def _compute_expiry_date(self):
+    @api.depends('expiration_date')
+    def _compute_x_expiry_month_year(self):
         for rec in self:
-            rec.expiry_date = False
-            if not rec.x_expiry_month_year:
-                continue
-            try:
-                month, year = rec.x_expiry_month_year.split('/')
-                month, year = int(month), int(year)
-                last_day = calendar.monthrange(year, month)[1]
-                rec.expiry_date = date(year, month, last_day)
-            except Exception:
-                rec.expiry_date = False
+            if rec.expiration_date:
+                # expiration_date is typically Datetime, but strftime works for both Date and Datetime
+                rec.x_expiry_month_year = rec.expiration_date.strftime('%m/%Y')
+            else:
+                rec.x_expiry_month_year = False
 
     @api.depends('expiration_date')
+    def _compute_expiry_date(self):
+        for rec in self:
+            if rec.expiration_date:
+                rec.expiry_date = rec.expiration_date.date()
+            else:
+                rec.expiry_date = False
+
+    def _inverse_x_expiry_month_year(self):
+        for rec in self:
+            if rec.x_expiry_month_year:
+                normalized_value = rec._normalize_month_year_value(rec.x_expiry_month_year)
+                expiry_datetime = rec._convert_month_year_value_to_expiration_datetime(normalized_value)
+                vals = rec._prepare_expiry_dates_from_expiration(expiry_datetime, rec.product_id)
+                rec.update(vals)
+            else:
+                rec.update({
+                    'expiration_date': False,
+                    'use_date': False,
+                    'removal_date': False,
+                    'alert_date': False
+                })
+
+    @api.depends('expiration_date', 'x_use_expiration_date')
     def _compute_expiry_state(self):
         get_param = self.env['ir.config_parameter'].sudo().get_param
         near_limit = int(get_param('pharmacy_mgmt.near_expiry_limit', default=30))
         critical_limit = int(get_param('pharmacy_mgmt.critical_expiry_limit', default=7))
         today = date.today()
         for lot in self:
-            if not lot.expiration_date:
+            if not lot.expiration_date or not lot.x_use_expiration_date:
                 lot.expiry_state = 'normal'
                 continue
             exp_date = lot.expiration_date.date()

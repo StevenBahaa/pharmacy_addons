@@ -45,13 +45,12 @@ class StockQuant(models.Model):
         readonly=True,
     )
 
-    @api.depends('product_id', 'product_id.use_expiration_date', 'product_id.tracking', 'product_id.product_tmpl_id.x_classification')
+    @api.depends('product_id', 'product_id.use_expiration_date', 'product_id.tracking')
     def _compute_x_use_expiration_date(self):
         for rec in self:
             rec.x_use_expiration_date = (
                 rec.product_id.use_expiration_date 
-                and rec.product_id.tracking != 'none' 
-                and rec.product_id.product_tmpl_id.x_classification == 'medicine'
+                and rec.product_id.tracking != 'none'
             )
 
     @api.depends('is_expired', 'expiring_days')
