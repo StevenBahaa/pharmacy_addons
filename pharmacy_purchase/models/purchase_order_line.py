@@ -13,6 +13,16 @@ class PurchaseOrderLine(models.Model):
         compute='_compute_purchase_uom_readonly',
         help='Technical field to indicate UoM cannot be changed',
     )
+    x_use_expiration_date = fields.Boolean(
+        string='Use Expiration Date',
+        compute='_compute_x_use_expiration_date',
+        readonly=True,
+    )
+
+    @api.depends('product_id', 'product_id.use_expiration_date', 'product_id.tracking')
+    def _compute_x_use_expiration_date(self):
+        for line in self:
+            line.x_use_expiration_date = line.product_id.use_expiration_date and line.product_id.tracking != 'none'
 
     # -------------------------------------------------------------------------
     # COMPUTE: UOM LOCKING

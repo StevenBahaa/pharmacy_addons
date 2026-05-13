@@ -47,17 +47,9 @@ class UomUom(models.Model):
         allowed_ids = self._pharmacy_get_sale_allowed_uom_ids_from_context()
         if allowed_ids:
             domain = expression.AND([domain, [("id", "in", allowed_ids)]])
-        return super()._name_search(
-            name=name,
-            domain=domain,
-            operator=operator,
-            limit=limit,
-            order=order,
-        )
 
-    @api.model
-    def name_search(self, name="", args=None, operator="ilike", limit=100):
-        """
-        Ensure filtering also applies when any override bypasses _name_search.
-        """
-        return self._name_search(name, args, operator, limit)
+        if name:
+            name_domain = [('name', operator, name)]
+            domain = expression.AND([domain, name_domain])
+
+        return self._search(domain, limit=limit, order=order)

@@ -44,7 +44,7 @@ class PurchaseOrderLineTracking(models.Model):
 
     # ─── Confirmation Date (from PO) ────────────────────────────────────────────
     confirmation_date = fields.Datetime(
-        string='Confirmation Date',
+        string='PO Confirmation Date',
         related='order_id.date_approve',
         store=True,
         readonly=True,
@@ -62,7 +62,7 @@ class PurchaseOrderLineTracking(models.Model):
 
     # ─── Product display with internal ref ──────────────────────────────────────
     product_display_name = fields.Char(
-        string='Product',
+        string='Product Display',
         compute='_compute_product_display_name',
         store=True,
         help='Product name with internal reference code in brackets.',

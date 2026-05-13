@@ -1,105 +1,204 @@
-# Pharmacy Addons for Odoo 18
+# Pharmacy Management System for Odoo 18 Community
 
-A comprehensive suite of Odoo 18 Community modules designed for pharmacy management, focusing on inventory precision, security hardening, and specialized retail operations.
+![Odoo](https://img.shields.io/badge/Odoo-18.0-purple)
+![License](https://img.shields.io/badge/License-LGPL--3-blue)
+![Python](https://img.shields.io/badge/Python-3.10+-green)
 
-## Project Overview
-
-This repository contains a modular pharmacy solution built on Odoo 18. It extends standard Odoo Inventory, Purchase, and POS applications with healthcare-specific requirements such as strict lot expiry management, periodic inventory counts, and controlled substance warnings.
-
-## Core Modules
-
-### 🏥 [Pharmacy Base](./pharmacy_base)
-The foundation of the system.
-- Shared security groups (Pharmacist, Technician, Inventory Manager, etc.).
-- Extended product templates for pharmaceutical data.
-- Package Units of Measure (UoM) foundations.
-
-### 📦 [Pharmacy Inventory Operations](./pharmacy_inventory_ops)
-Manages the day-to-day stock accuracy.
-- **Periodic Counts**: Wizard-driven full inventory counts with category filters.
-- **Spot Checks**: Daily quick counts with mandatory reason logging.
-- **Barcode Support**: Seamless integration with barcode scanners for counts.
-- **Discrepancy Reporting**: PDF and Excel reports for inventory variance.
-
-### ⏳ [Pharmacy Stock Expiry](./pharmacy_stock_expiry)
-Strict control over medicine shelf-life.
-- Automated expiry detection via cron jobs.
-- Dedicated "Expired" locations for quarantined stock.
-- Transfer wizards to move expired lots to designated locations.
-
-### 🛒 [Pharmacy POS](./pharmacy_pos)
-Enhanced Point of Sale for clinical safety.
-- **Scheduled Medicine Warnings**: Popups to alert cashiers about controlled substances.
-- **Product Suggestions**: Intelligent suggestions for related products or alternatives.
-- **Expiry Integration**: Real-time warnings for expiring lots during sale.
-
-### 💳 [Pharmacy Purchase](./pharmacy_purchase)
-Specialized procurement workflows.
-- **Discount History**: Tracking price changes and supplier discounts over time.
-- **Consignment Tracking**: Manage stock owned by suppliers.
-- **PO Tracking**: Advanced visibility into purchase order status and receipt history.
-
-### 📈 [Pharmacy Inventory Advanced](./pharmacy_inventory_advanced)
-Advanced stock management and forecasting.
-- **Consumption Forecasting**: Predict future needs based on historical sales.
-- **Bulk Scrap**: Streamlined interface for mass scrapping of damaged or expired goods.
-
-### 📋 Additional Modules
-- **Pharmacy Wishlist**: Customer product wishlists and stock alerts.
-- **Pharmacy Stock Reservation**: Reserve stock for specific clinical or customer needs.
-- **Pharmacy Sales Rules**: Enforce complex pharmaceutical sales restrictions.
-- **Pharmacy Reports**: Specialized reporting suite with XLSX export capabilities.
-- **Pharmacy System**: Global configurations and system-wide utilities.
+A robust, modular ecosystem of Odoo addons designed to handle the complexities of pharmaceutical retail, inventory management, and regulatory compliance.
 
 ---
 
-## Installation Instructions
+## 📋 1. Overview
 
-Follow these steps to install the full Pharmacy suite.
+The **Pharmacy Management System** is a specialized suite for Odoo 18 Community Edition. It bridges the gap between standard ERP functionality and the stringent requirements of pharmacy operations. Key focus areas include inventory precision (spot-checks and periodic counts), strict lot expiry tracking with automated quarantine, and enhanced POS safety mechanisms for controlled substances.
 
-### 1. Prerequisites
-Ensure your environment meets the following requirements:
-*   **Odoo Version**: 18.0 Community Edition.
-*   **Python**: 3.10 or higher.
-*   **Dependencies**: The suite requires the `xlsxwriter` Python library (for Excel reports).
-    ```bash
-    pip install xlsxwriter
-    ```
+## ✨ 2. Core Features
 
-### 2. Add to Addons Path
-1.  Download or clone this repository to your Odoo server.
-2.  Add the path of this folder to your `odoo.conf` file:
-    ```ini
-    [options]
-    addons_path = /path/to/odoo/addons, /path/to/pharmacy_addons_repo
-    ```
+* **Precision Inventory Control**: Multi-mode counting (Spot vs. Periodic) with mandatory reason logging for discrepancies.
+* **Safety & Compliance**: Integrated warnings for scheduled medicines and automated lot expiry detection.
+* **Smart Procurement**: Consignment tracking, supplier discount history, and advanced PO lifecycle visibility.
+* **Retail Optimization**: Intelligent product suggestions at the Point of Sale and alternate product mapping.
+* **Operational Audit Logging**: Systematic logging of sensitive data changes and stock adjustments.
 
-### 3. Update Apps List
-1.  Restart your Odoo service.
-2.  Log in as **Administrator** and activate **Developer Mode**.
-3.  Go to **Apps > Update Apps List** and click **Update**.
+## 💻 3. Technical Requirements
 
-### 4. Install Full Suite
-1.  Search for **"Pharmacy Management System"** (technical name: `pharmacy_system`) in the Apps menu.
-2.  Click **Activate**.
-    *   *Note: This will automatically install all sub-modules in the correct dependency order.*
+* **Odoo Version**: 18.0 Community Edition.
+* **Python**: 3.10+
+* **PostgreSQL**: 14.0+
+* **Core Dependencies**: `base`, `stock`, `purchase`, `point_of_sale`, `product_expiry`.
+
+## 🏗️ 4. Module Structure
+
+The system follows a strict **Hub-and-Spoke** modular architecture.
+
+> [!IMPORTANT]
+> **[pharmacy_base](./pharmacy_base)** is the foundation of the entire suite. It centralizes all pharmacy-specific security groups (Pharmacist, Technician, Manager) and foundational data. **All other feature modules depend on `pharmacy_base`** to ensure consistent access control.
+
+| Module | Purpose | Key Features |
+| :--- | :--- | :--- |
+| `pharmacy_base` | **Core Hub** | Security groups, Package UoMs, Product extensions. |
+| `pharmacy_system` | **Metapackage** | Installs the full suite and manages global settings. |
+| `pharmacy_inventory_ops` | Operations | Periodic counts, barcode integration, stock logs. |
+| `pharmacy_stock_expiry` | Compliance | Expiry detection cron, quarantine locations. |
+| `pharmacy_pos` | Retail UI | Scheduled medicine warnings, product suggestions. |
+| `pharmacy_purchase` | Procurement | Consignment tracking, PO tracking, discount history. |
+| `pharmacy_inventory_advanced` | Analytics | Consumption forecasting, bulk scrap tools. |
+| `pharmacy_reports` | Reporting | Unified PDF/XLSX reporting engine. |
+| `pharmacy_wishlist` | CRM | Customer product wishlists and stock alerts. |
+| `pharmacy_stock_reservation` | Logistics | Stock reservation for clinical or customer needs. |
+| `pharmacy_sales_rules` | Regulation | Pharmaceutical-specific sales restrictions. |
+
+## 🚀 5. Installation
+
+### A. Prerequisites
+
+Ensure your server has the `xlsxwriter` library (required for Excel reporting):
+
+```bash
+pip install xlsxwriter
+```
+
+### B. Deployment Steps
+
+1. **Clone Repository**: Place this repository in your Odoo `addons_path`.
+2. **Server Restart**: Restart the Odoo service to detect new modules.
+3. **App Update**: In Odoo (with Developer Mode ON), go to **Apps > Update Apps List**.
+4. **Activation**: Search for `pharmacy_system` and click **Activate**. This ensures all dependencies, starting with `pharmacy_base`, are installed in the correct sequence.
+
+## ✅ 6. Post-Installation Configuration Checklist
+
+### 🛠️ General Configuration
+
+* [ ] **Security Groups**: Map users to `Pharmacy / Pharmacist`, `Pharmacy / Technician`, and `Pharmacy / Manager` roles in **Settings > Users**.
+* [ ] **Multi-Branch Setup**: Configure Branches and Warehouses to ensure proper data isolation via record rules.
+
+### 📦 Inventory & Expiry
+
+* [ ] **Quarantine Location**: Create or designate a specific location as "Expired" in **Inventory > Configuration > Locations**.
+* [ ] **Expiry Detection**: Configure the `Pharmacy: Detection of Expired Lots` cron job frequency (Daily recommended).
+* [ ] **Lot Tracking**: Ensure "Lots & Serial Numbers" is enabled in Inventory Settings; verify lot-tracking on high-value products.
+
+### 🛒 Point of Sale (POS)
+
+* [ ] **Safety Warnings**: Flag scheduled medicines in the product template to trigger cashier alerts at checkout.
+* [ ] **Shared Barcodes**: Enable and test reciprocal barcode mapping for interchangeable generic brands.
+
+### 💳 Purchase & Procurement
+
+* [ ] **Low-Stock Triggers**: Set reordering rules and verify "Shortage List" automated population.
+* [ ] **Vendor Terms**: Configure consignment vendors and link them to designated tracking locations.
+* [ ] **Discount History**: Review initial purchase price logs to establish a baseline for discount tracking.
+
+### 🔐 Reporting & Security
+
+* [ ] **Export Permissions**: Restrict XLSX/PDF export capabilities to `Pharmacy / Manager` or higher roles.
+* [ ] **Audit Logging**: Verify that changes to sensitive fields (e.g., product prices, stock adjustments) are being captured in **Pharmacy > Configuration > Audit Logs**.
+* [ ] **Record Rules**: Test location-based visibility to ensure branch data remains isolated.
+
+### 🧪 Recommended Validation Scenarios
+
+* [ ] **Scenario 1**: Attempt to sell an expired lot (should trigger a POS warning/block).
+* [ ] **Scenario 2**: Log in as a `Technician` and attempt to view supplier purchase costs (should be hidden).
+* [ ] **Scenario 3**: Run a "Periodic Count" and verify that a discrepancy report generates an audit trail entry.
+
+## 🛡️ 7. Security Model
+
+The suite implements a "Security-First" design:
+
+* **Centralized RBAC**: All roles (Pharmacist, Technician, etc.) are managed in `pharmacy_base`.
+* **Multi-Branch Isolation**: Record rules ensure that users only interact with stock and data from their assigned branches.
+* **Field-Level Protection**: Sensitive financial data (e.g., product costs) is restricted to management roles.
+* **Method Hardening**: Critical backend operations (validation, scrapping) are protected by explicit group checks.
+
+## 🔒 Security Documentation
+
+Detailed RBAC roles, ACL behavior, record rules, and operational security architecture documentation can be found here:
+
+- [Security & Roles Documentation](docs/security/security-roles.md)
+
+## 🧪 8. Testing / Validation
+
+Each module includes a `tests/` directory covering:
+
+* **Logic Verification**: Unit tests for expiry logic and inventory calculations.
+* **Security Validation**: Negative tests ensuring restricted users cannot bypass ACLs.
+
+**Run all tests:**
+
+```bash
+python3 odoo-bin -c your_config.conf -i pharmacy_system --test-enable --stop-after-init
+```
+
+## 📸 9. Screenshots
+
+> Real screenshots from the pharmacy demo environment.
 
 ---
 
-## Security & Access Control
+### 🛒 POS Safety Warning
 
-The project implements a multi-tier security model including:
-- Record rules for branch/location isolation.
-- Field-level visibility restrictions (hiding costs from cashiers).
-- Backend method protection with explicit group checks.
-- Audit logging for sensitive operations.
+<p align="center">
+  <img src="docs/screenshots/POS_Safety_Warning.png" width="100%">
+</p>
 
-## Technical Specifications
-
-- **Odoo Version**: 18.0 Community
-- **Python**: 3.10+
-- **Database**: PostgreSQL
-- **Key Dependencies**: `base`, `stock`, `purchase`, `point_of_sale`, `product_expiry`, `report_xlsx`
+*Warning popup triggered when a scheduled or controlled medicine is added during checkout.*
 
 ---
-*Developed by Steven Bahaa*
+
+### 📦 Expired & Near-Expiry Management
+
+<p align="center">
+  <img src="docs/screenshots/Expired_Medicines.png" width="100%">
+</p>
+
+*Management dashboard for expired lots, near-expiry stock, quarantine workflows, and expiry transfers.*
+
+---
+
+### 📊 Forecast & Shortage Monitoring
+
+<p align="center">
+  <img src="docs/screenshots/Forecast_Dashboard.png" width="100%">
+</p>
+
+*Consumption forecasting, shortage analysis, reorder recommendations, and operational stock monitoring.*
+
+---
+
+### 💊 Pharmacy Product Configuration
+
+<p align="center">
+  <img src="docs/screenshots/Pharmacy_product.png" width="100%">
+</p>
+
+*Pharmacy product configuration including UoM setup, lot tracking, expiry settings, and operational pharmacy fields.*
+
+---
+
+### 🧾 Inventory Count & Reconciliation
+
+<p align="center">
+  <img src="docs/screenshots/Periodic_inventory.png" width="100%">
+</p>
+
+*Periodic inventory counting workflow with discrepancy handling, quantity adjustments, and audit tracking.*
+
+---
+
+### 🚚 Consignment Purchase & Tracking
+
+<p align="center">
+  <img src="docs/screenshots/Consignment_procurement.png" width="100%">
+</p>
+
+*Consignment procurement workflow including stock ownership tracking, vendor management, and operational monitoring.*
+
+## 📄 10. License
+
+Distributed under the **LGPL-3** License. See `LICENSE` or module manifests for more information.
+
+## 📝 11. Notes
+
+* **Post-Install**: Configure your "Expired" location in **Inventory > Configuration > Locations**.
+* **UoM Usage**: Enable "Units of Measure" in Odoo General Settings to utilize pharmacy-specific package units.
+* **Auditing**: Access the unified Audit Log via **Pharmacy > Configuration > Audit Logs**.

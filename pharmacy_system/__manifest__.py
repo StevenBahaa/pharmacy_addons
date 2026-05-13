@@ -23,6 +23,11 @@
     ],
 
     'data': [
+        'views/stock_picking_views.xml',
+        'views/stock_quant_view.xml',
+        'views/stock_lot_views.xml',
+        'views/expired_medicines_views.xml',
+        'views/stock_location_view.xml',
     ],
 
     'assets': {
